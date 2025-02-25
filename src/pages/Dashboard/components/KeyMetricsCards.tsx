@@ -4,8 +4,8 @@ import {
   Inventory as InventoryIcon,
   CheckCircle as CheckCircleIcon,
   Build as BuildIcon,
-  SwapHoriz as SwapHorizIcon,
-  Warning as WarningIcon 
+  LocalShipping as ShippingIcon,
+  Equalizer as MetricsIcon 
 } from '@mui/icons-material';
 
 interface MetricCardProps {
@@ -18,8 +18,8 @@ interface MetricCardProps {
 const DashboardCard = styled(Paper)(({ theme }) => ({
   height: '100%',
   backgroundColor: theme.palette.background.paper,
-  borderRadius: 0,
-  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: theme.shadows[2],
   '& .card-content': {
     padding: theme.spacing(2),
   },
@@ -47,7 +47,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, value, label, color }) =>
         </Box>
         <Box>
           <Typography variant="h4" color={`${color}.main`}>
-            {value}
+            {value.toLocaleString()}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {label}
@@ -58,54 +58,50 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, value, label, color }) =>
   </DashboardCard>
 );
 
-interface KeyMetricsCardsProps {
-  stats: {
-    total: number;
-    serviceableItems: number;
-    maintenanceNeeded: number;
-    pendingTransfers: number;
-    overdueItems: number;
-  };
+export interface KeyMetricsCardsProps {
+  totalItems: number;
+  serviceableItems: number;
+  maintenanceNeeded: number;
+  pendingReceipts: number;
 }
 
-export const KeyMetricsCards: React.FC<KeyMetricsCardsProps> = ({ stats }) => {
+export const KeyMetricsCards: React.FC<KeyMetricsCardsProps> = ({ 
+  totalItems,
+  serviceableItems,
+  maintenanceNeeded,
+  pendingReceipts
+}) => {
   const metrics = [
     {
       icon: <InventoryIcon />,
-      value: stats.total,
-      label: 'Total Property Items',
+      value: totalItems,
+      label: 'Total Inventory Items',
       color: 'primary' as const,
     },
     {
       icon: <CheckCircleIcon />,
-      value: stats.serviceableItems,
-      label: 'Items in Good Condition',
+      value: serviceableItems,
+      label: 'Available Items',
       color: 'success' as const,
     },
     {
       icon: <BuildIcon />,
-      value: stats.maintenanceNeeded,
-      label: 'Items Needing Maintenance',
+      value: maintenanceNeeded,
+      label: 'Items Needing Attention',
       color: 'warning' as const,
     },
     {
-      icon: <SwapHorizIcon />,
-      value: stats.pendingTransfers,
-      label: 'Pending Transfers',
+      icon: <ShippingIcon />,
+      value: pendingReceipts,
+      label: 'Pending Receipts',
       color: 'primary' as const,
-    },
-    {
-      icon: <WarningIcon />,
-      value: stats.overdueItems,
-      label: 'Overdue Maintenance',
-      color: 'error' as const,
     }
   ];
 
   return (
     <Grid container spacing={3}>
       {metrics.map((metric, index) => (
-        <Grid item xs={12} sm={6} md={2.4} key={index}>
+        <Grid item xs={12} sm={6} md={3} key={index}>
           <MetricCard {...metric} />
         </Grid>
       ))}

@@ -1,6 +1,10 @@
 export { KeyMetricsCards } from './KeyMetricsCards';
-export { ActionableTasks } from './ActionableTasks';
 export { NotificationsPanel } from './NotificationsPanel';
-export { UnitInventoryOverview } from './UnitInventoryOverview';
-export { PersonnelOverview } from './PersonnelOverview';
-export { RecentActivityFeed } from './RecentActivityFeed'; 
+export { RecentActivityFeed } from './RecentActivityFeed';
+export { ActivityTimeline } from './ActivityTimeline';
+export { CriticalAlertsCard } from './CriticalAlertsCard';
+export { MetricsCard } from './MetricsCard';
+export { PerformanceMetricsGrid } from './PerformanceMetricsGrid';
+export { QuickTransferCard } from './QuickTransferCard';
+export { SupplyChainVisualization } from './SupplyChainVisualization';
+export { PendingApprovalsTable } from './PendingApprovalsTable'; 

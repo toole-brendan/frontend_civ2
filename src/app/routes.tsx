@@ -4,27 +4,27 @@ import { icons } from '../components/layout/Sidebar';
 
 // Lazy load pages
 const Dashboard = React.lazy(() => import('../pages/Dashboard/index'));
-const MyProperty = React.lazy(() => import('../pages/Property'));
-const UnitInventory = React.lazy(() => import('../pages/UnitInventory/index'));
+const Inventory = React.lazy(() => import('../pages/Inventory/index'));
 const Transfers = React.lazy(() => import('../pages/Transfers/index'));
-const Maintenance = React.lazy(() => import('../pages/Maintenance/index'));
-const QrManagement = React.lazy(() => import('../pages/QrManagement/index'));
-const Reports = React.lazy(() => import('../pages/Reports/index'));
-const UserManagement = React.lazy(() => import('../pages/UserManagement/index'));
+const Orders = React.lazy(() => import('../pages/Orders/index'));
+const Wallet = React.lazy(() => import('../pages/Wallet/index'));
+const Scanner = React.lazy(() => import('../pages/Scanner/index'));
+const Partners = React.lazy(() => import('../pages/Partners/index'));
+const Analytics = React.lazy(() => import('../pages/Analytics/index'));
 const Settings = React.lazy(() => import('../pages/Settings/index'));
 const Profile = React.lazy(() => import('../pages/Profile/index'));
 
 export const ROUTES = {
-  DASHBOARD: '/defense/dashboard',
-  PROPERTY: '/defense/property',
-  UNIT_INVENTORY: '/defense/inventory',
-  TRANSFERS: '/defense/transfers',
-  MAINTENANCE: '/defense/maintenance',
-  QR_MANAGEMENT: '/defense/qr',
-  REPORTS: '/defense/reports',
-  USERS: '/defense/users',
-  SETTINGS: '/defense/settings',
-  PROFILE: '/defense/profile',
+  DASHBOARD: '/civilian/dashboard',
+  INVENTORY: '/civilian/inventory',
+  TRANSFERS: '/civilian/transfers',
+  ORDERS: '/civilian/orders',
+  WALLET: '/civilian/wallet',
+  SCANNER: '/civilian/scanner',
+  PARTNERS: '/civilian/partners',
+  ANALYTICS: '/civilian/analytics',
+  SETTINGS: '/civilian/settings',
+  PROFILE: '/civilian/profile',
 } as const;
 
 export const NAV_ITEMS = [
@@ -34,13 +34,8 @@ export const NAV_ITEMS = [
     icon: icons.DashboardIcon,
   },
   {
-    title: 'My Property',
-    path: ROUTES.PROPERTY,
-    icon: icons.InventoryIcon,
-  },
-  {
-    title: 'Unit Inventory',
-    path: ROUTES.UNIT_INVENTORY,
+    title: 'Inventory',
+    path: ROUTES.INVENTORY,
     icon: icons.InventoryIcon,
   },
   {
@@ -49,24 +44,29 @@ export const NAV_ITEMS = [
     icon: icons.TransfersIcon,
   },
   {
-    title: 'Maintenance',
-    path: ROUTES.MAINTENANCE,
-    icon: icons.BuildIcon,
+    title: 'Orders',
+    path: ROUTES.ORDERS,
+    icon: icons.OrdersIcon,
   },
   {
-    title: 'QR Management',
-    path: ROUTES.QR_MANAGEMENT,
+    title: 'Wallet',
+    path: ROUTES.WALLET,
+    icon: icons.WalletIcon,
+  },
+  {
+    title: 'Scanner',
+    path: ROUTES.SCANNER,
     icon: icons.QrCodeIcon,
   },
   {
-    title: 'Reports',
-    path: ROUTES.REPORTS,
-    icon: icons.ReportsIcon,
+    title: 'Partners',
+    path: ROUTES.PARTNERS,
+    icon: icons.PartnersIcon,
   },
   {
-    title: 'User Management',
-    path: ROUTES.USERS,
-    icon: icons.UsersIcon,
+    title: 'Analytics',
+    path: ROUTES.ANALYTICS,
+    icon: icons.AnalyticsIcon,
   },
   {
     title: 'Settings',
@@ -82,15 +82,15 @@ const AppRoutes: React.FC = () => {
         {/* Redirect root to dashboard */}
         <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
         
-        {/* Defense routes */}
+        {/* Civilian routes */}
         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
-        <Route path={ROUTES.PROPERTY} element={<MyProperty />} />
-        <Route path={ROUTES.UNIT_INVENTORY} element={<UnitInventory />} />
+        <Route path={ROUTES.INVENTORY} element={<Inventory />} />
         <Route path={ROUTES.TRANSFERS} element={<Transfers />} />
-        <Route path={ROUTES.MAINTENANCE} element={<Maintenance />} />
-        <Route path={ROUTES.QR_MANAGEMENT} element={<QrManagement />} />
-        <Route path={ROUTES.REPORTS} element={<Reports />} />
-        <Route path={ROUTES.USERS} element={<UserManagement />} />
+        <Route path={ROUTES.ORDERS} element={<Orders />} />
+        <Route path={ROUTES.WALLET} element={<Wallet />} />
+        <Route path={ROUTES.SCANNER} element={<Scanner />} />
+        <Route path={ROUTES.PARTNERS} element={<Partners />} />
+        <Route path={ROUTES.ANALYTICS} element={<Analytics />} />
         <Route path={ROUTES.SETTINGS} element={<Settings />} />
         <Route path={ROUTES.PROFILE} element={<Profile />} />
         
