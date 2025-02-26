@@ -1,43 +1,60 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Drawer,
   List,
   Divider,
   useTheme,
   Box,
+  Typography,
+  IconButton,
+  Badge,
+  Collapse,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Avatar,
+  Tooltip,
+  Button,
 } from '@mui/material';
 import {
-  Dashboard as DashboardIcon,
-  Inventory as InventoryIcon,
-  SwapHoriz as TransfersIcon,
-  ShoppingCart as OrdersIcon,
-  AccountBalanceWallet as WalletIcon,
-  QrCode as QrCodeIcon,
-  Handshake as PartnersIcon,
-  BarChart as AnalyticsIcon,
-  Settings as SettingsIcon,
+  AddCircleOutline as CreateTransferIcon,
+  Description as ReportIcon,
+  ExpandLess,
+  ExpandMore,
+  ChevronLeft,
+  ChevronRight,
+  AccountCircle,
   Logout as LogoutIcon,
+  NotificationsActive as NotificationsActiveIcon,
+  QrCode as QrCodeIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { NavItemConfig, DrawerVariant } from '../../types/navigation';
 import NavItem from './NavItem';
+import { NAV_ITEMS, ROUTES, icons } from '../../app/routes';
 
-// Create an icons map to help TypeScript understand the icons are used
-const icons = {
-  DashboardIcon,
-  InventoryIcon,
-  TransfersIcon,
-  OrdersIcon,
-  WalletIcon,
-  QrCodeIcon,
-  PartnersIcon,
-  AnalyticsIcon,
-  SettingsIcon,
-  LogoutIcon,
-} as const;
+// Enhanced navigation item interface that extends NavItemConfig
+interface EnhancedNavItem extends NavItemConfig {
+  badge?: number;
+  badgeColor?: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+  subtitle?: string;
+}
 
-// Export for use in routes configuration
-export { icons };
+// Mock data for warehouse locations
+const warehouseLocations = [
+  { id: 'all', name: 'All Locations', status: 'normal' },
+  { id: 'austin', name: 'Austin, TX', status: 'warning' },
+  { id: 'sanjose', name: 'San Jose, CA', status: 'normal' },
+  { id: 'guadalajara', name: 'Guadalajara, MX', status: 'critical' },
+];
+
+// Mock data for user
+const mockUser = {
+  name: 'Michael Chen',
+  role: 'Operations Director',
+  company: 'TechComponents International',
+  avatar: '/assets/images/avatars/1.jpg',
+};
 
 interface SidebarProps {
   variant: DrawerVariant;
@@ -51,32 +68,192 @@ const Sidebar: React.FC<SidebarProps> = ({
   variant, 
   open, 
   onClose,
-  navItems 
+  navItems,
+  isMobile,
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const [collapsed, setCollapsed] = useState(false);
+  const [warehousesOpen, setWarehousesOpen] = useState(true);
+  
+  const drawerWidth = collapsed ? 72 : 260;
 
   const handleLogout = () => {
     // Add logout logic here
     navigate('/');
   };
 
+  const toggleCollapse = () => {
+    setCollapsed(!collapsed);
+  };
+
+  const toggleWarehouses = () => {
+    setWarehousesOpen(!warehousesOpen);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'critical':
+        return theme.palette.error.main;
+      case 'warning':
+        return theme.palette.warning.main;
+      default:
+        return theme.palette.success.main;
+    }
+  };
+
+  // Enhanced navigation items with badges and counts
+  const enhancedNavItems: EnhancedNavItem[] = [
+    {
+      ...navItems.find(item => item.title === 'Dashboard') || { title: 'Dashboard', path: ROUTES.DASHBOARD, icon: icons.DashboardIcon },
+      badge: 5, // Unread notifications
+    },
+    {
+      ...navItems.find(item => item.title === 'Inventory') || { title: 'Inventory', path: ROUTES.INVENTORY, icon: icons.InventoryIcon },
+      subtitle: '12,483 SKUs',
+    },
+    {
+      ...navItems.find(item => item.title === 'Transfers') || { title: 'Transfers', path: ROUTES.TRANSFERS, icon: icons.TransfersIcon },
+      subtitle: '18 active',
+    },
+    {
+      ...navItems.find(item => item.title === 'Suppliers') || { title: 'Suppliers', path: ROUTES.SUPPLIERS, icon: icons.SuppliersIcon },
+      subtitle: '15 total',
+    },
+    {
+      ...navItems.find(item => item.title === 'Payments') || { title: 'Payments', path: ROUTES.PAYMENTS, icon: icons.PaymentsIcon },
+      subtitle: '3 due',
+    },
+    {
+      ...navItems.find(item => item.title === 'Alerts') || { title: 'Alerts', path: ROUTES.ALERTS, icon: icons.AlertsIcon },
+      badge: 8,
+      badgeColor: 'error',
+    },
+    {
+      ...navItems.find(item => item.title === 'Analytics') || { title: 'Analytics', path: ROUTES.ANALYTICS, icon: icons.AnalyticsIcon },
+    },
+    {
+      ...navItems.find(item => item.title === 'Team') || { title: 'Team', path: ROUTES.TEAM, icon: icons.TeamIcon },
+    },
+    {
+      ...navItems.find(item => item.title === 'Settings') || { title: 'Settings', path: ROUTES.SETTINGS, icon: icons.SettingsIcon },
+    },
+  ];
+
+  const renderNavItem = (item: EnhancedNavItem, index: number) => {
+    const isActive = location.pathname === item.path;
+    
+    return (
+      <ListItemButton
+        key={index}
+        onClick={() => navigate(item.path)}
+        selected={isActive}
+        sx={{
+          minHeight: 48,
+          px: 2.5,
+          py: 1,
+          borderLeft: isActive ? `3px solid ${theme.palette.primary.main}` : '3px solid transparent',
+          backgroundColor: isActive 
+            ? theme.palette.mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.08)' 
+              : 'rgba(0, 0, 0, 0.04)' 
+            : 'transparent',
+          '&:hover': {
+            backgroundColor: theme.palette.mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.05)' 
+              : 'rgba(0, 0, 0, 0.03)',
+          },
+          justifyContent: collapsed ? 'center' : 'initial',
+          mb: 0.5,
+        }}
+      >
+        <ListItemIcon
+          sx={{
+            minWidth: 0,
+            mr: collapsed ? 0 : 2,
+            justifyContent: 'center',
+            color: isActive 
+              ? theme.palette.primary.main 
+              : theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.7)' 
+                : 'rgba(0, 0, 0, 0.7)',
+          }}
+        >
+          {item.badge ? (
+            <Badge
+              badgeContent={item.badge}
+              color={item.badgeColor as 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' || 'error'}
+              sx={{
+                '& .MuiBadge-badge': {
+                  right: -3,
+                  top: 3,
+                  border: `2px solid ${theme.palette.background.paper}`,
+                  padding: '0 4px',
+                },
+              }}
+            >
+              <item.icon />
+            </Badge>
+          ) : (
+            <item.icon />
+          )}
+        </ListItemIcon>
+        
+        {!collapsed && (
+          <>
+            <ListItemText
+              primary={item.title}
+              secondary={item.subtitle}
+              primaryTypographyProps={{
+                variant: 'body2',
+                fontWeight: isActive ? 600 : 400,
+                color: isActive 
+                  ? theme.palette.primary.main 
+                  : theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.9)' 
+                    : 'rgba(0, 0, 0, 0.9)',
+                noWrap: true,
+              }}
+              secondaryTypographyProps={{
+                variant: 'caption',
+                color: theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.6)' 
+                  : 'rgba(0, 0, 0, 0.6)',
+                noWrap: true,
+              }}
+              sx={{ opacity: collapsed ? 0 : 1 }}
+            />
+          </>
+        )}
+      </ListItemButton>
+    );
+  };
+
   return (
     <Drawer
       variant={variant}
       anchor="left"
-      open={open}
+      open={variant === 'temporary' ? open : true}
       onClose={onClose}
       sx={{
-        width: 240,
+        width: drawerWidth,
         flexShrink: 0,
         '& .MuiDrawer-paper': {
-          width: 240,
+          width: drawerWidth,
           boxSizing: 'border-box',
-          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          backgroundColor: theme.palette.mode === 'dark' 
+            ? 'rgba(0, 0, 0, 0.9)' 
+            : 'rgba(255, 255, 255, 0.9)',
           backdropFilter: 'blur(12px)',
           color: theme.palette.text.primary,
           borderRight: `1px solid ${theme.palette.divider}`,
+          transition: theme.transitions.create('width', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
+          overflowX: 'hidden',
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -84,49 +261,275 @@ const Sidebar: React.FC<SidebarProps> = ({
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 100%)',
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 100%)'
+              : 'linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0) 100%)',
             pointerEvents: 'none',
           },
         },
       }}
     >
-      <Box sx={{ height: theme.spacing(8) }} /> {/* Toolbar spacing */}
-      <Divider sx={{ backgroundColor: 'rgba(255,255,255,0.12)' }} />
+      {/* User Profile Section */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: collapsed ? 'column' : 'row',
+          alignItems: 'center',
+          padding: collapsed ? 1 : 2,
+          paddingTop: theme.spacing(2),
+          paddingBottom: theme.spacing(2),
+        }}
+      >
+        <Avatar
+          src={mockUser.avatar}
+          alt={mockUser.name}
+          sx={{
+            width: collapsed ? 40 : 48,
+            height: collapsed ? 40 : 48,
+            marginRight: collapsed ? 0 : 2,
+            marginBottom: collapsed ? 1 : 0,
+            border: `2px solid ${theme.palette.primary.main}`,
+          }}
+        />
+        
+        {!collapsed && (
+          <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
+            <Typography 
+              variant="subtitle1" 
+              noWrap 
+              sx={{ 
+                color: theme.palette.mode === 'dark' ? 'white' : 'black', 
+                fontWeight: 600 
+              }}
+            >
+              {mockUser.name}
+            </Typography>
+            <Typography 
+              variant="caption" 
+              noWrap 
+              sx={{ 
+                color: theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.7)' 
+                  : 'rgba(0, 0, 0, 0.7)' 
+              }}
+            >
+              {mockUser.role} • {mockUser.company}
+            </Typography>
+          </Box>
+        )}
+        
+        <IconButton
+          onClick={toggleCollapse}
+          sx={{
+            color: theme.palette.mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.7)' 
+              : 'rgba(0, 0, 0, 0.7)',
+            display: { xs: 'none', sm: 'flex' },
+          }}
+        >
+          {collapsed ? <ChevronRight /> : <ChevronLeft />}
+        </IconButton>
+      </Box>
+      
+      <Divider sx={{ backgroundColor: theme.palette.divider }} />
       
       {/* Main Navigation Items */}
-      <List sx={{ 
-        flexGrow: 1, 
-        py: 1,
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
-        {navItems.map((item) => (
-          <NavItem
-            key={item.title}
-            to={item.path}
-            icon={<item.icon />}
-            data-testid={`nav-item-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-            aria-label={item.title}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: 'calc(100% - 80px)',
+          overflow: 'auto',
+        }}
+      >
+        <List sx={{ py: 1 }}>
+          {enhancedNavItems.map(renderNavItem)}
+        </List>
+        
+        <Divider sx={{ backgroundColor: theme.palette.divider, my: 1 }} />
+        
+        {/* Warehouses Section */}
+        <List sx={{ py: 0 }}>
+          <ListItemButton onClick={toggleWarehouses} sx={{ py: 1 }}>
+            <ListItemIcon 
+              sx={{ 
+                minWidth: 0, 
+                mr: collapsed ? 0 : 2, 
+                color: theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.7)' 
+                  : 'rgba(0, 0, 0, 0.7)' 
+              }}
+            >
+              <icons.WarehouseIcon />
+            </ListItemIcon>
+            {!collapsed && (
+              <>
+                <ListItemText 
+                  primary="Warehouses" 
+                  primaryTypographyProps={{ 
+                    variant: 'body2',
+                    color: theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.9)' 
+                      : 'rgba(0, 0, 0, 0.9)',
+                  }} 
+                />
+                {warehousesOpen ? <ExpandLess /> : <ExpandMore />}
+              </>
+            )}
+          </ListItemButton>
+          
+          <Collapse in={!collapsed && warehousesOpen} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {warehouseLocations.map((location) => (
+                <ListItemButton
+                  key={location.id}
+                  sx={{
+                    pl: 4,
+                    py: 0.75,
+                    '&:hover': {
+                      backgroundColor: theme.palette.mode === 'dark' 
+                        ? 'rgba(255, 255, 255, 0.05)' 
+                        : 'rgba(0, 0, 0, 0.03)',
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 0, mr: 2 }}>
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        backgroundColor: getStatusColor(location.status),
+                      }}
+                    />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={location.name}
+                    primaryTypographyProps={{
+                      variant: 'body2',
+                      color: theme.palette.mode === 'dark' 
+                        ? 'rgba(255, 255, 255, 0.7)' 
+                        : 'rgba(0, 0, 0, 0.7)',
+                    }}
+                  />
+                </ListItemButton>
+              ))}
+            </List>
+          </Collapse>
+        </List>
+        
+        <Box sx={{ flexGrow: 1 }} />
+        
+        {/* Quick Actions */}
+        <Box sx={{ p: collapsed ? 1 : 2 }}>
+          {!collapsed ? (
+            <>
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                startIcon={<QrCodeIcon />}
+                onClick={() => navigate(ROUTES.SCANNER)}
+                sx={{ mb: 1 }}
+              >
+                Scan QR Code
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<CreateTransferIcon />}
+                onClick={() => navigate(ROUTES.CREATE_TRANSFER)}
+                sx={{ 
+                  mb: 1, 
+                  color: theme.palette.mode === 'dark' ? 'white' : 'inherit',
+                  borderColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.3)' 
+                    : 'rgba(0, 0, 0, 0.23)'
+                }}
+              >
+                Create Transfer
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<ReportIcon />}
+                onClick={() => navigate(ROUTES.GENERATE_REPORT)}
+                sx={{ 
+                  color: theme.palette.mode === 'dark' ? 'white' : 'inherit',
+                  borderColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.3)' 
+                    : 'rgba(0, 0, 0, 0.23)'
+                }}
+              >
+                Generate Report
+              </Button>
+            </>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+              <Tooltip title="Scan QR Code" placement="right">
+                <IconButton
+                  color="primary"
+                  onClick={() => navigate(ROUTES.SCANNER)}
+                  sx={{ 
+                    backgroundColor: theme.palette.primary.main, 
+                    color: 'white', 
+                    '&:hover': { 
+                      backgroundColor: theme.palette.primary.dark 
+                    } 
+                  }}
+                >
+                  <QrCodeIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Create Transfer" placement="right">
+                <IconButton
+                  onClick={() => navigate(ROUTES.CREATE_TRANSFER)}
+                  sx={{ 
+                    border: theme.palette.mode === 'dark' 
+                      ? '1px solid rgba(255, 255, 255, 0.3)' 
+                      : '1px solid rgba(0, 0, 0, 0.23)', 
+                    color: theme.palette.text.primary 
+                  }}
+                >
+                  <CreateTransferIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Generate Report" placement="right">
+                <IconButton
+                  onClick={() => navigate(ROUTES.GENERATE_REPORT)}
+                  sx={{ 
+                    border: theme.palette.mode === 'dark' 
+                      ? '1px solid rgba(255, 255, 255, 0.3)' 
+                      : '1px solid rgba(0, 0, 0, 0.23)', 
+                    color: theme.palette.text.primary 
+                  }}
+                >
+                  <ReportIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          )}
+        </Box>
+        
+        {/* Logout Button */}
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: collapsed ? 'center' : 'flex-start', px: collapsed ? 0 : 2 }}>
+          <Button
+            variant="text"
+            color="inherit"
+            onClick={handleLogout}
+            startIcon={!collapsed && <icons.LogoutIcon />}
+            sx={{ 
+              color: theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.7)' 
+                : 'rgba(0, 0, 0, 0.7)',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              minWidth: collapsed ? 'auto' : '100%',
+            }}
           >
-            {item.title}
-          </NavItem>
-        ))}
-        <Box sx={{ flexGrow: 1 }} /> {/* Spacer to push logout to bottom */}
-      </List>
-
-      {/* Logout Button at Bottom */}
-      <Divider sx={{ backgroundColor: 'rgba(255,255,255,0.12)' }} />
-      <List sx={{ py: 1 }}>
-        <NavItem
-          to="/"
-          icon={<LogoutIcon />}
-          onClick={handleLogout}
-          data-testid="nav-item-logout"
-          aria-label="Logout"
-        >
-          Logout
-        </NavItem>
-      </List>
+            {collapsed ? <icons.LogoutIcon /> : 'Logout'}
+          </Button>
+        </Box>
+      </Box>
     </Drawer>
   );
 };

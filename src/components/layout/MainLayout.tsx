@@ -24,7 +24,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <AppBar 
         isMobile={isMobile}
         onDrawerToggle={handleDrawerToggle}
-        userDisplayName="John Doe" // TODO: Replace with actual user name from auth
+        userDisplayName="Michael Chen" // Operations Director at TechComponents International
       />
       
       <Sidebar 

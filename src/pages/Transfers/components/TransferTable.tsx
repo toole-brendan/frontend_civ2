@@ -14,8 +14,11 @@ import {
   TablePagination,
   useTheme,
   useMediaQuery,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import { Transfer, TransferStatus } from '../types';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 interface TransferTableProps {
   transfers: Transfer[];
@@ -30,10 +33,14 @@ interface TransferTableProps {
 
 const getStatusColor = (status: TransferStatus): string => {
   const statusColors = {
-    PENDING: '#ff9800',
-    COMPLETED: '#4caf50',
-    AWAITING_APPROVAL: '#2196f3',
-    REJECTED: '#f44336',
+    SCHEDULED: '#ff9800', // orange
+    IN_PREPARATION: '#ffeb3b', // yellow
+    IN_TRANSIT: '#03a9f4', // light blue
+    IN_CUSTOMS: '#9c27b0', // purple
+    QUALITY_CHECK: '#00bcd4', // cyan
+    AWAITING_APPROVAL: '#2196f3', // blue
+    COMPLETED: '#4caf50', // green
+    REJECTED: '#f44336', // red
   };
   return statusColors[status];
 };
@@ -80,11 +87,13 @@ const TransferTable: React.FC<TransferTableProps> = ({
         >
           View Details
         </Button>
-        {transfer.status === 'PENDING' && (
+        {transfer.status === 'AWAITING_APPROVAL' && (
           <Button
+            variant="text"
+            color="primary"
             size="small"
-            variant="contained"
             onClick={() => onConfirm(transfer)}
+            startIcon={<CheckCircleOutlineIcon />}
           >
             Confirm
           </Button>
@@ -140,14 +149,16 @@ const TransferTable: React.FC<TransferTableProps> = ({
                   >
                     View Details
                   </Button>
-                  {transfer.status === 'PENDING' && (
-                    <Button
-                      size="small"
-                      variant="contained"
-                      onClick={() => onConfirm(transfer)}
-                    >
-                      Confirm
-                    </Button>
+                  {transfer.status === 'AWAITING_APPROVAL' && (
+                    <Tooltip title="Confirm Receipt">
+                      <IconButton
+                        color="primary"
+                        onClick={() => onConfirm(transfer)}
+                        size="small"
+                      >
+                        <CheckCircleOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                   )}
                 </Box>
               </TableCell>

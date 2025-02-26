@@ -1,6 +1,35 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { icons } from '../components/layout/Sidebar';
+import {
+  Dashboard as DashboardIcon,
+  Inventory as InventoryIcon,
+  SwapHoriz as TransfersIcon,
+  Business as SuppliersIcon,
+  Payments as PaymentsIcon,
+  Notifications as AlertsIcon,
+  BarChart as AnalyticsIcon,
+  People as TeamIcon,
+  Settings as SettingsIcon,
+  QrCode as QrCodeIcon,
+  Warehouse as WarehouseIcon,
+  Logout as LogoutIcon,
+} from '@mui/icons-material';
+
+// Define icons here instead of importing from Sidebar
+export const icons = {
+  DashboardIcon,
+  InventoryIcon,
+  TransfersIcon,
+  SuppliersIcon,
+  PaymentsIcon,
+  AlertsIcon,
+  AnalyticsIcon,
+  TeamIcon,
+  SettingsIcon,
+  QrCodeIcon,
+  WarehouseIcon,
+  LogoutIcon,
+} as const;
 
 // Lazy load pages
 const Dashboard = React.lazy(() => import('../pages/Dashboard/index'));
@@ -13,6 +42,12 @@ const Partners = React.lazy(() => import('../pages/Partners/index'));
 const Analytics = React.lazy(() => import('../pages/Analytics/index'));
 const Settings = React.lazy(() => import('../pages/Settings/index'));
 const Profile = React.lazy(() => import('../pages/Profile/index'));
+// New pages
+const Suppliers = React.lazy(() => import('../pages/Suppliers/SuppliersPage'));
+const Payments = React.lazy(() => import('../pages/Payments/index'));
+const Alerts = React.lazy(() => import('../pages/Alerts/index'));
+const Team = React.lazy(() => import('../pages/Team/index'));
+const Reports = React.lazy(() => import('../pages/Reports/index'));
 
 export const ROUTES = {
   DASHBOARD: '/civilian/dashboard',
@@ -25,6 +60,14 @@ export const ROUTES = {
   ANALYTICS: '/civilian/analytics',
   SETTINGS: '/civilian/settings',
   PROFILE: '/civilian/profile',
+  // New routes
+  SUPPLIERS: '/civilian/suppliers',
+  PAYMENTS: '/civilian/payments',
+  ALERTS: '/civilian/alerts',
+  TEAM: '/civilian/team',
+  // Additional routes for quick actions
+  CREATE_TRANSFER: '/civilian/transfers/create',
+  GENERATE_REPORT: '/civilian/reports/generate',
 } as const;
 
 export const NAV_ITEMS = [
@@ -44,29 +87,29 @@ export const NAV_ITEMS = [
     icon: icons.TransfersIcon,
   },
   {
-    title: 'Orders',
-    path: ROUTES.ORDERS,
-    icon: icons.OrdersIcon,
+    title: 'Suppliers',
+    path: ROUTES.SUPPLIERS,
+    icon: icons.SuppliersIcon,
   },
   {
-    title: 'Wallet',
-    path: ROUTES.WALLET,
-    icon: icons.WalletIcon,
+    title: 'Payments',
+    path: ROUTES.PAYMENTS,
+    icon: icons.PaymentsIcon,
   },
   {
-    title: 'Scanner',
-    path: ROUTES.SCANNER,
-    icon: icons.QrCodeIcon,
-  },
-  {
-    title: 'Partners',
-    path: ROUTES.PARTNERS,
-    icon: icons.PartnersIcon,
+    title: 'Alerts',
+    path: ROUTES.ALERTS,
+    icon: icons.AlertsIcon,
   },
   {
     title: 'Analytics',
     path: ROUTES.ANALYTICS,
     icon: icons.AnalyticsIcon,
+  },
+  {
+    title: 'Team',
+    path: ROUTES.TEAM,
+    icon: icons.TeamIcon,
   },
   {
     title: 'Settings',
@@ -93,6 +136,16 @@ const AppRoutes: React.FC = () => {
         <Route path={ROUTES.ANALYTICS} element={<Analytics />} />
         <Route path={ROUTES.SETTINGS} element={<Settings />} />
         <Route path={ROUTES.PROFILE} element={<Profile />} />
+        
+        {/* New routes */}
+        <Route path={ROUTES.SUPPLIERS} element={<Suppliers />} />
+        <Route path={ROUTES.PAYMENTS} element={<Payments />} />
+        <Route path={ROUTES.ALERTS} element={<Alerts />} />
+        <Route path={ROUTES.TEAM} element={<Team />} />
+        
+        {/* Quick action routes - using existing components for now */}
+        <Route path={ROUTES.CREATE_TRANSFER} element={<Transfers />} />
+        <Route path={ROUTES.GENERATE_REPORT} element={<Reports />} />
         
         {/* Catch all - redirect to dashboard */}
         <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />

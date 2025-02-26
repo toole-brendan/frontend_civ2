@@ -20,7 +20,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
-import { ScanHistory, ScanMode } from '../types';
+import { ScanResult, ScanMode } from '../types';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   borderBottom: `1px solid ${theme.palette.divider}`,
@@ -33,8 +33,8 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 interface ScanHistoryTableProps {
-  scanHistory: ScanHistory[];
-  onViewDetails: (scan: ScanHistory) => void;
+  scanHistory: ScanResult[];
+  onViewDetails: (scan: ScanResult) => void;
 }
 
 const ScanHistoryTable: React.FC<ScanHistoryTableProps> = ({
@@ -43,7 +43,7 @@ const ScanHistoryTable: React.FC<ScanHistoryTableProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   
-  const getActionChipColor = (action: ScanMode) => {
+  const getActionChipColor = (action?: ScanMode) => {
     switch (action) {
       case 'INVENTORY':
         return 'primary';
@@ -60,6 +60,19 @@ const ScanHistoryTable: React.FC<ScanHistoryTableProps> = ({
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'VERIFIED':
+        return 'success';
+      case 'UNVERIFIED':
+        return 'warning';
+      case 'FAILED':
+        return 'error';
+      default:
+        return 'default';
+    }
+  };
+
   const formatDate = (timestamp: string) => {
     return new Date(timestamp).toLocaleString();
   };
@@ -70,8 +83,8 @@ const ScanHistoryTable: React.FC<ScanHistoryTableProps> = ({
       scan.id.toLowerCase().includes(lowerCaseQuery) ||
       scan.productId.toLowerCase().includes(lowerCaseQuery) ||
       scan.location.toLowerCase().includes(lowerCaseQuery) ||
-      scan.performedBy.toLowerCase().includes(lowerCaseQuery) ||
-      scan.action.toLowerCase().includes(lowerCaseQuery)
+      scan.scannedBy.toLowerCase().includes(lowerCaseQuery) ||
+      (scan.scanMode && scan.scanMode.toLowerCase().includes(lowerCaseQuery))
     );
   });
 
@@ -135,26 +148,26 @@ const ScanHistoryTable: React.FC<ScanHistoryTableProps> = ({
                   </StyledTableCell>
                   <StyledTableCell>
                     <Chip
-                      label={scan.action}
+                      label={scan.scanMode || 'UNKNOWN'}
                       size="small"
-                      color={getActionChipColor(scan.action) as any}
+                      color={getActionChipColor(scan.scanMode) as any}
                     />
                   </StyledTableCell>
                   <StyledTableCell>
                     <Typography variant="body2">{scan.location}</Typography>
                   </StyledTableCell>
                   <StyledTableCell>
-                    <Typography variant="body2">{scan.performedBy}</Typography>
+                    <Typography variant="body2">{scan.scannedBy}</Typography>
                   </StyledTableCell>
                   <StyledTableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {scan.result === 'SUCCESS' ? (
+                      {scan.status === 'VERIFIED' ? (
                         <CheckCircleIcon fontSize="small" color="success" sx={{ mr: 0.5 }} />
                       ) : (
                         <ErrorIcon fontSize="small" color="error" sx={{ mr: 0.5 }} />
                       )}
                       <Typography variant="body2">
-                        {scan.result}
+                        {scan.status}
                       </Typography>
                     </Box>
                   </StyledTableCell>

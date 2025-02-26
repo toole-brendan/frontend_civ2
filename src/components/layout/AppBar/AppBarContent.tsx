@@ -15,16 +15,20 @@ import {
   Box,
   styled,
   Theme,
+  Tooltip,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Notifications as NotificationsIcon,
   AccountCircle,
   Settings as SettingsIcon,
-  Logout as LogoutIcon,
   KeyboardArrowDown as ArrowDownIcon,
   Menu as MenuIcon,
+  Brightness4 as DarkModeIcon,
+  Brightness7 as LightModeIcon,
 } from '@mui/icons-material';
+import { icons } from '../../../app/routes';
+import { useTheme } from '../../../theme/ThemeContext';
 
 const DRAWER_WIDTH = 240;
 
@@ -32,8 +36,8 @@ const Search = styled('div')(({ theme }) => ({
   position: 'absolute',
   left: DRAWER_WIDTH,
   borderRadius: 0,
-  backgroundColor: '#000000',
-  border: '1px solid rgba(255, 255, 255, 0.12)',
+  backgroundColor: theme.palette.mode === 'dark' ? '#000000' : '#F5F5F5',
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)'}`,
   marginRight: theme.spacing(2),
   width: '100%',
   maxWidth: '800px',
@@ -45,12 +49,12 @@ const Search = styled('div')(({ theme }) => ({
     }
   ),
   '&:hover': {
-    borderColor: 'rgba(255, 255, 255, 0.24)',
+    borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.24)' : 'rgba(0, 0, 0, 0.24)',
   },
   '&:focus-within': {
-    borderColor: '#FFFFFF',
+    borderColor: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
     '& .SearchIconWrapper': {
-      color: '#FFFFFF',
+      color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
     },
   },
   [theme.breakpoints.up('md')]: {
@@ -72,14 +76,14 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  color: 'rgba(255, 255, 255, 0.7)',
+  color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
   transition: theme.transitions.create('color', {
     duration: theme.transitions.duration.shorter,
   }),
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: '#FFFFFF',
+  color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
   width: '100%',
   '& .MuiInputBase-input': {
     padding: theme.spacing(1.25, 1, 1.25, 0),
@@ -89,14 +93,14 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     fontSize: '0.9375rem',
     fontWeight: 400,
     '&::placeholder': {
-      color: 'rgba(255, 255, 255, 0.5)',
+      color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
       opacity: 1,
       letterSpacing: '0.02em',
       fontWeight: 300,
     },
     '&:focus': {
       '&::placeholder': {
-        color: 'rgba(255, 255, 255, 0.7)',
+        color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
       },
     },
   },
@@ -109,9 +113,13 @@ const UserInfo = styled(Box)(({ theme }) => ({
   padding: theme.spacing(0.5, 1),
   cursor: 'pointer',
   borderRadius: 0,
-  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  backgroundColor: theme.palette.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.03)' 
+    : 'rgba(0, 0, 0, 0.03)',
   backdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
+  border: `1px solid ${theme.palette.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.1)' 
+    : 'rgba(0, 0, 0, 0.1)'}`,
   transition: theme.transitions.create(
     ['background-color', 'transform', 'box-shadow'],
     {
@@ -120,19 +128,23 @@ const UserInfo = styled(Box)(({ theme }) => ({
     }
   ),
   '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: theme.palette.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.05)' 
+      : 'rgba(0, 0, 0, 0.05)',
     transform: 'translateY(-1px)',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 2px 4px rgba(0, 0, 0, 0.5)'
+      : '0 2px 4px rgba(0, 0, 0, 0.2)',
   },
 }));
 
 const StyledMenu = styled(Menu)(({ theme }) => ({
   '& .MuiPaper-root': {
-    backgroundColor: '#000000',
+    backgroundColor: theme.palette.mode === 'dark' ? '#000000' : '#FFFFFF',
     backdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
     borderRadius: 0,
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+    boxShadow: theme.palette.mode === 'dark' ? '0 4px 8px rgba(0, 0, 0, 0.5)' : '0 4px 8px rgba(0, 0, 0, 0.1)',
     '& .MuiMenuItem-root': {
       transition: theme.transitions.create(
         ['background-color', 'color'],
@@ -142,7 +154,7 @@ const StyledMenu = styled(Menu)(({ theme }) => ({
         }
       ),
       '&:hover': {
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
       },
     },
   },
@@ -167,14 +179,16 @@ const LogoContainer = styled(Box)(({ theme }: { theme: Theme }) => ({
 }));
 
 const LogoBox = styled(Box)(({ theme }: { theme: Theme }) => ({
-  border: '1px solid rgba(255, 255, 255, 0.7)',
+  border: `1px solid ${theme.palette.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.7)' 
+    : 'rgba(0, 0, 0, 0.7)'}`,
   padding: theme.spacing(0.75, 2),
   marginRight: theme.spacing(2),
   '& h1': {
     fontSize: '1.125rem',
     fontWeight: 300,
     letterSpacing: '0.05em',
-    color: '#FFFFFF',
+    color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#000000',
     margin: 0,
     fontFamily: 'Georgia, serif',
     textTransform: 'none',
@@ -195,6 +209,7 @@ export const AppBarContent: React.FC<AppBarContentProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
+  const { mode, toggleTheme } = useTheme();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,10 +243,14 @@ export const AppBarContent: React.FC<AppBarContentProps> = ({
           onClick={onDrawerToggle}
           sx={{
             marginRight: 2,
-            color: 'rgba(255, 255, 255, 0.7)',
+            color: mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.7)' 
+              : 'rgba(0, 0, 0, 0.7)',
             '&:hover': {
-              color: '#FFFFFF',
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              color: mode === 'dark' ? '#FFFFFF' : '#000000',
+              backgroundColor: mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.05)' 
+                : 'rgba(0, 0, 0, 0.05)',
             },
           }}
         >
@@ -259,6 +278,22 @@ export const AppBarContent: React.FC<AppBarContentProps> = ({
       </Search>
 
       <Box sx={{ flexGrow: 1 }} />
+
+      {/* Theme Toggle Button */}
+      <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}>
+        <IconButton
+          onClick={toggleTheme}
+          color="inherit"
+          sx={{
+            mr: 1,
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            },
+          }}
+        >
+          {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+        </IconButton>
+      </Tooltip>
 
       <IconButton
         size="large"
@@ -291,17 +326,18 @@ export const AppBarContent: React.FC<AppBarContentProps> = ({
             sx={{
               fontWeight: 500,
               letterSpacing: '0.02em',
+              color: mode === 'dark' ? '#FFFFFF' : '#000000',
             }}
           >
             {userDisplayName}
           </Typography>
           <Typography
             variant="caption"
-            color="text.secondary"
             sx={{
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
               fontSize: '0.7rem',
+              color: mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
             }}
           >
             USER
@@ -310,7 +346,7 @@ export const AppBarContent: React.FC<AppBarContentProps> = ({
         <ArrowDownIcon
           sx={{
             fontSize: 20,
-            color: 'text.secondary',
+            color: mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
             transition: (theme) =>
               theme.transitions.create('transform', {
                 duration: theme.transitions.duration.shorter,
@@ -343,7 +379,7 @@ export const AppBarContent: React.FC<AppBarContentProps> = ({
         <Divider />
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
-            <LogoutIcon fontSize="small" />
+            <icons.LogoutIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>Logout</ListItemText>
         </MenuItem>

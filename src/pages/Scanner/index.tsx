@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -12,6 +12,19 @@ import {
   Divider,
   Card,
   CardContent,
+  Tabs,
+  Tab,
+  FormControlLabel,
+  Switch,
+  Tooltip,
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Chip,
+  Badge,
+  Dialog,
 } from '@mui/material';
 import QrCodeIcon from '@mui/icons-material/QrCode';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
@@ -20,13 +33,22 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import HistoryIcon from '@mui/icons-material/History';
+import BarcodeReaderIcon from '@mui/icons-material/ViewWeek';
+import RfidIcon from '@mui/icons-material/SettingsInputAntenna';
+import KeyboardIcon from '@mui/icons-material/Keyboard';
+import SyncIcon from '@mui/icons-material/Sync';
+import IntegrationInstructionsIcon from '@mui/icons-material/IntegrationInstructions';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import PageTitle from '../../components/common/PageTitle';
 import QRScannerComponent from './components/QRScannerComponent';
 import ScanResultView from './components/ScanResultView';
 import ScanHistoryTable from './components/ScanHistoryTable';
-import { ScanResult, ScanHistory, ScanMode, ProductDetails, ScanMetrics } from './types';
+import { ScanResult, ScanHistory, ScanMode, ProductDetails, ScanMetrics, ScanTechnology } from './types';
+import { mockScanHistory as scanHistoryData, mockScanMetrics } from '../../mockData';
 
-// Base card styling following dashboard pattern
+// Base card styling
 const DashboardCard = styled(Paper)(({ theme }) => ({
   height: '100%',
   backgroundColor: theme.palette.background.paper,
@@ -58,123 +80,139 @@ const currentUser = {
 };
 
 // Mock scan metrics
-const mockScanMetrics: ScanMetrics = {
-  totalScansToday: 47,
-  successfulScans: 45,
-  failedScans: 2,
-  productsScanned: 38,
-  locationChanges: 12,
-  inventoryUpdates: 22,
-};
+const scanMetrics: ScanMetrics = mockScanMetrics;
 
 // Mock scan history
 const mockScanHistory: ScanHistory[] = [
   {
-    id: 'SCAN-001',
-    productId: 'ETHIO-YIRGACHEFFE-2023',
-    timestamp: '2023-10-19T09:15:30Z',
+    id: 'scan_001',
+    productId: 'PROD-A7X-001',
+    timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
     action: 'INVENTORY',
-    location: 'Seattle Warehouse - Section A',
-    performedBy: 'Alex Rodriguez',
+    scanTechnology: 'QR_CODE',
+    location: 'Austin Warehouse',
+    performedBy: 'Michael Chen',
     result: 'SUCCESS',
-    notes: 'Regular inventory check'
+    systemIntegration: 'SAP ERP'
   },
   {
-    id: 'SCAN-002',
-    productId: 'GUAT-HUEHUETENANGO-2023',
-    timestamp: '2023-10-19T10:22:15Z',
+    id: 'scan_002',
+    productId: 'PROD-RF5G-023',
+    timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
     action: 'TRANSFER',
-    location: 'Seattle Warehouse - Loading Bay',
-    performedBy: 'Alex Rodriguez',
+    scanTechnology: 'BARCODE',
+    location: 'Austin Warehouse',
+    performedBy: 'Sarah Johnson',
     result: 'SUCCESS',
-    notes: 'Transfer to Portland distribution center'
+    systemIntegration: 'Oracle WMS'
   },
   {
-    id: 'SCAN-003',
-    productId: 'COL-NARIÑO-2023',
-    timestamp: '2023-10-19T11:45:08Z',
+    id: 'scan_003',
+    productId: 'PROD-FPGA-107',
+    timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
     action: 'SHIPPING',
-    location: 'Seattle Warehouse - Loading Bay',
-    performedBy: 'Alex Rodriguez',
-    result: 'SUCCESS',
-    notes: 'Shipment to Blue Bottle Coffee'
+    scanTechnology: 'RFID',
+    location: 'Austin Warehouse',
+    performedBy: 'Michael Chen',
+    result: 'SUCCESS'
   },
   {
-    id: 'SCAN-004',
-    productId: 'BRA-CERRADO-2023',
-    timestamp: '2023-10-19T12:30:22Z',
+    id: 'scan_004',
+    productId: 'PROD-CAP-512',
+    timestamp: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
     action: 'RECEIPT',
-    location: 'Seattle Warehouse - Receiving',
-    performedBy: 'Alex Rodriguez',
-    result: 'SUCCESS',
-    notes: 'New shipment from Brazil'
+    scanTechnology: 'BARCODE',
+    location: 'Austin Warehouse',
+    performedBy: 'David Rodriguez',
+    result: 'FAILURE',
+    notes: 'Barcode damaged, entered manually'
   },
   {
-    id: 'SCAN-005',
-    productId: 'KEN-NYERI-2023',
-    timestamp: '2023-10-19T14:05:45Z',
+    id: 'scan_005',
+    productId: 'PROD-PWR-098',
+    timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
     action: 'VERIFICATION',
-    location: 'Seattle Warehouse - Section B',
-    performedBy: 'Alex Rodriguez',
-    result: 'FAILURE',
-    notes: 'Blockchain verification failed'
+    scanTechnology: 'MANUAL',
+    location: 'Austin Warehouse',
+    performedBy: 'Michael Chen',
+    result: 'SUCCESS',
+    systemIntegration: 'SAP ERP'
   },
 ];
 
-// Mock product details for scan result
+// Mock product details for a successful scan
 const mockProductDetails: ProductDetails = {
-  id: 'ETHIO-YIRGACHEFFE-2023',
-  name: 'Ethiopia Yirgacheffe',
-  sku: 'COFFEE-ETH-YIR-2023',
-  batchNumber: 'BATCH-Y2023-04',
-  origin: 'Yirgacheffe, Ethiopia',
-  roastLevel: 'MEDIUM',
-  processMethod: 'WASHED',
-  category: 'GREEN',
-  location: 'Aisle 3, Rack 2, Shelf 4',
-  warehouse: 'Seattle Warehouse',
-  quantityAvailable: 750,
-  unit: 'KG',
-  unitPrice: 8.75,
+  id: 'PROD-A7X-001',
+  name: 'A7X Microprocessor',
+  sku: 'A7X-MP-2023-V2',
+  batchNumber: 'BATCH-2023-09-15-001',
+  manufacturer: 'Taiwan Semiconductor',
+  category: 'SEMICONDUCTOR',
+  componentType: 'Microprocessor',
+  specifications: {
+    'Clock Speed': '3.2 GHz',
+    'Cores': '8',
+    'Architecture': '7nm',
+    'Power Consumption': '65W'
+  },
+  location: 'Aisle 5, Rack 3, Bin 12',
+  warehouse: 'Austin Warehouse',
+  quantityAvailable: 150,
+  unit: 'UNITS',
+  unitPrice: 245.00,
   status: 'IN_STOCK',
-  harvestDate: '2023-01-15',
-  expiryDate: '2024-01-15',
-  certifications: ['Organic', 'Fair Trade', 'Rainforest Alliance'],
+  manufacturingDate: '2023-09-15',
+  expiryDate: '2028-09-15',
+  certifications: ['ISO-9001', 'RoHS', 'REACH'],
+  customsStatus: 'CLEARED',
+  hazardousMaterial: false
 };
 
-// Mock scan result 
-const mockScanResult: ScanResult = {
-  id: 'SCAN-001',
-  productId: 'ETHIO-YIRGACHEFFE-2023',
-  scannedAt: '2023-10-19T09:15:30Z',
-  scannedBy: 'Alex Rodriguez',
-  scanMode: 'INVENTORY',
-  location: 'Seattle Warehouse - Section A',
-  productDetails: mockProductDetails,
-  blockchainVerified: true,
-  blockchainTxHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-  notes: 'Regular inventory check',
+// Create a mock scan result
+const createMockScanResult = (productId: string, batchNumber: string, scanMode: ScanMode, scanTechnology: ScanTechnology): ScanResult => {
+  return {
+    id: `SCAN-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    productId,
+    batchNumber,
+    status: 'VERIFIED',
+    scannedBy: currentUser.name,
+    location: currentUser.location,
+    scanTechnology,
+    details: {
+      productName: 'Industrial Component XYZ',
+      manufacturer: 'TechComponents International',
+      manufacturingDate: '2023-05-15',
+      expiryDate: '2025-05-15',
+      certifications: ['ISO9001', 'CE'],
+    },
+    scanMode,
+    blockchainVerified: true,
+    blockchainTxHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    notes: 'High-quality component from trusted supplier',
+    productDetails: mockProductDetails
+  };
 };
 
-// Define MetricCard component for scan metrics
+// Define MetricCard component for scanner metrics
 const MetricCard: React.FC<{
   title: string;
   value: number;
   icon: React.ReactNode;
   color?: string;
 }> = ({ title, value, icon, color = 'primary' }) => (
-  <Grid item xs={6} md={4} lg={2}>
-    <Card elevation={0} sx={{ borderRadius: 0, border: 1, borderColor: 'divider' }}>
-      <CardContent>
+  <Grid item xs={6} sm={4} md={2}>
+    <DashboardCard elevation={0}>
+      <Box className="card-content" sx={{ p: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
           <Box
             sx={{
-              mr: 1.5,
+              mr: 2,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 36,
-              height: 36,
+              width: 40,
+              height: 40,
               borderRadius: '50%',
               backgroundColor: `${color}.light`,
               color: `${color}.main`,
@@ -182,24 +220,54 @@ const MetricCard: React.FC<{
           >
             {icon}
           </Box>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="subtitle2" color="textSecondary">
             {title}
           </Typography>
         </Box>
-        <Typography variant="h5" fontWeight="bold">
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
           {value}
         </Typography>
-      </CardContent>
-    </Card>
+      </Box>
+    </DashboardCard>
   </Grid>
 );
 
 const ScannerPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState(0);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [scanMode, setScanMode] = useState<ScanMode>('INVENTORY');
-  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
+  const [scanTechnology, setScanTechnology] = useState<ScanTechnology>('QR_CODE');
+  const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [showHistory, setShowHistory] = useState(false);
-  const [selectedHistoryItem, setSelectedHistoryItem] = useState<ScanHistory | null>(null);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<ScanResult | null>(null);
+  const [integrationEnabled, setIntegrationEnabled] = useState({
+    erp: true,
+    wms: true,
+    autoSync: true
+  });
+  const [techMenuAnchor, setTechMenuAnchor] = useState<null | HTMLElement>(null);
+  const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
+  
+  // Initialize scan history on component mount
+  useEffect(() => {
+    // In a real app, this would be an API call to fetch scan history
+    setScanHistory(mockScanHistory.map(item => 
+      createMockScanResult(item.productId, 'BATCH-123', item.action, item.scanTechnology)
+    ));
+  }, []);
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
+
+  const handleOpenScanner = () => {
+    setScannerOpen(true);
+  };
+
+  const handleCloseScanner = () => {
+    setScannerOpen(false);
+  };
 
   const handleScanModeChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -210,28 +278,38 @@ const ScannerPage: React.FC = () => {
     }
   };
 
-  const handleStartScan = () => {
-    setIsQRScannerOpen(true);
+  const handleScanTechnologyChange = (
+    event: React.MouseEvent<HTMLElement>,
+    newTechnology: ScanTechnology | null,
+  ) => {
+    if (newTechnology !== null) {
+      setScanTechnology(newTechnology);
+    }
   };
-  
+
+  const handleStartScan = () => {
+    setIsScanning(true);
+    handleOpenScanner();
+  };
+
   const handleScanComplete = (result: { productId: string; batchNumber: string; type: string }) => {
-    // In a real app, you would fetch product details and create a scan record
-    // For now, we'll use mock data with the scanned info
-    const newScanResult = {
-      ...mockScanResult,
-      id: `SCAN-${Math.floor(Math.random() * 10000)}`,
-      productId: result.productId,
-      scannedAt: new Date().toISOString(),
-      scanMode,
-      productDetails: {
-        ...mockProductDetails,
-        id: result.productId,
-        batchNumber: result.batchNumber,
-      },
-    };
+    // Close the scanner dialog
+    handleCloseScanner();
+    setIsScanning(false);
     
+    // Create a mock scan result - in a real app, we would fetch this from an API
+    const newScanResult = createMockScanResult(
+      result.productId,
+      result.batchNumber,
+      scanMode,
+      scanTechnology
+    );
+    
+    // Add to scan history
+    setScanHistory(prev => [newScanResult, ...prev]);
+    
+    // Show the scan result
     setScanResult(newScanResult);
-    setShowHistory(false);
   };
 
   const handleClearResult = () => {
@@ -239,18 +317,21 @@ const ScannerPage: React.FC = () => {
   };
 
   const handleInventoryUpdate = () => {
-    // In a real app, this would navigate to inventory update form
-    console.log('Update inventory for', scanResult?.productId);
+    // This would update inventory in a real app
+    console.log('Updating inventory for product:', scanResult?.productId);
+    handleClearResult();
   };
 
   const handleStartTransfer = () => {
-    // In a real app, this would navigate to transfer initiation
-    console.log('Start transfer for', scanResult?.productId);
+    // This would navigate to the transfer page in a real app
+    console.log('Starting transfer for product:', scanResult?.productId);
+    handleClearResult();
   };
 
   const handleStartShipping = () => {
-    // In a real app, this would navigate to shipping initiation
-    console.log('Start shipping for', scanResult?.productId);
+    // This would navigate to the shipping page in a real app
+    console.log('Starting shipping for product:', scanResult?.productId);
+    handleClearResult();
   };
 
   const handleViewScanHistory = () => {
@@ -258,130 +339,329 @@ const ScannerPage: React.FC = () => {
     setScanResult(null);
   };
 
-  const handleViewHistoryDetails = (scan: ScanHistory) => {
-    setSelectedHistoryItem(scan);
+  const handleViewHistoryDetails = (item: ScanResult) => {
+    setSelectedHistoryItem(item);
   };
 
   const handleCloseHistoryDetails = () => {
     setSelectedHistoryItem(null);
   };
 
+  const handleIntegrationToggle = (integration: 'erp' | 'wms' | 'autoSync') => {
+    setIntegrationEnabled(prev => ({
+      ...prev,
+      [integration]: !prev[integration]
+    }));
+  };
+
+  const handleSyncWithExternalSystems = () => {
+    // This would sync with external systems in a real app
+    console.log('Syncing with external systems');
+  };
+
+  const handleOpenTechMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setTechMenuAnchor(event.currentTarget);
+  };
+
+  const handleCloseTechMenu = () => {
+    setTechMenuAnchor(null);
+  };
+
+  const handleSelectTechnology = (tech: ScanTechnology) => {
+    setScanTechnology(tech);
+    handleCloseTechMenu();
+  };
+
+  const getTechIcon = (tech: ScanTechnology) => {
+    switch (tech) {
+      case 'QR_CODE':
+        return <QrCodeIcon />;
+      case 'BARCODE':
+        return <BarcodeReaderIcon />;
+      case 'RFID':
+        return <RfidIcon />;
+      case 'MANUAL':
+        return <KeyboardIcon />;
+      default:
+        return <QrCodeIcon />;
+    }
+  };
+
+  const getTechName = (tech: ScanTechnology) => {
+    switch (tech) {
+      case 'QR_CODE':
+        return 'QR Code';
+      case 'BARCODE':
+        return 'Barcode';
+      case 'RFID':
+        return 'RFID';
+      case 'MANUAL':
+        return 'Manual Entry';
+      default:
+        return 'Unknown';
+    }
+  };
+
   return (
-    <Container maxWidth={false}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <QrCodeIcon sx={{ mr: 2 }} />
-        <PageTitle variant="h5">QR Scanner</PageTitle>
+    <Container maxWidth="xl">
+      <PageTitle title="Scanner" />
+      
+      {/* Tabs */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs value={activeTab} onChange={handleTabChange} aria-label="scanner tabs">
+          <Tab label="Scanner" icon={<QrCodeScannerIcon />} iconPosition="start" />
+          <Tab label="History" icon={<HistoryIcon />} iconPosition="start" />
+        </Tabs>
       </Box>
-
-      {/* Metrics Row */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <MetricCard
-          title="Total Scans Today"
-          value={mockScanMetrics.totalScansToday}
-          icon={<QrCodeScannerIcon />}
-        />
-        <MetricCard
-          title="Successful"
-          value={mockScanMetrics.successfulScans}
-          icon={<FactCheckIcon />}
-          color="success"
-        />
-        <MetricCard
-          title="Failed"
-          value={mockScanMetrics.failedScans}
-          icon={<FactCheckIcon />}
-          color="error"
-        />
-        <MetricCard
-          title="Products"
-          value={mockScanMetrics.productsScanned}
-          icon={<InventoryIcon />}
-          color="info"
-        />
-        <MetricCard
-          title="Location Changes"
-          value={mockScanMetrics.locationChanges}
-          icon={<LocalShippingIcon />}
-          color="secondary"
-        />
-        <MetricCard
-          title="Inventory Updates"
-          value={mockScanMetrics.inventoryUpdates}
-          icon={<InventoryIcon />}
-          color="warning"
-        />
-      </Grid>
-
-      {/* Scan Controls */}
-      <DashboardCard elevation={0} sx={{ mb: 3 }}>
-        <Box sx={{ p: 2 }}>
-          <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} md={8}>
-              <Typography variant="subtitle1" gutterBottom>
-                Select Scan Mode
-              </Typography>
-              <ToggleButtonGroup
-                value={scanMode}
-                exclusive
-                onChange={handleScanModeChange}
-                aria-label="scan mode"
-                size="small"
-              >
-                <ToggleButton value="INVENTORY" aria-label="inventory scan">
-                  <InventoryIcon sx={{ mr: 1 }} />
-                  Inventory
-                </ToggleButton>
-                <ToggleButton value="TRANSFER" aria-label="transfer scan">
-                  <LocalShippingIcon sx={{ mr: 1 }} />
-                  Transfer
-                </ToggleButton>
-                <ToggleButton value="RECEIPT" aria-label="receipt scan">
-                  <ReceiptIcon sx={{ mr: 1 }} />
-                  Receipt
-                </ToggleButton>
-                <ToggleButton value="SHIPPING" aria-label="shipping scan">
-                  <LocalShippingIcon sx={{ mr: 1 }} />
-                  Shipping
-                </ToggleButton>
-                <ToggleButton value="VERIFICATION" aria-label="verification scan">
-                  <FactCheckIcon sx={{ mr: 1 }} />
-                  Verify
-                </ToggleButton>
-              </ToggleButtonGroup>
+      
+      {/* Scanner Tab */}
+      {activeTab === 0 && (
+        <>
+          {/* Scanner Header */}
+          <Box sx={{ mb: 4 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={8}>
+                <Typography variant="h4" sx={{ mb: 1 }}>
+                  Supply Chain Scanner
+                </Typography>
+                <Typography variant="body1" color="textSecondary">
+                  Scan QR codes, barcodes, or RFID tags to view, update, or transfer items in your supply chain.
+                  All scans are securely recorded on the blockchain for maximum traceability and accountability.
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  startIcon={<QrCodeScannerIcon />}
+                  onClick={handleStartScan}
+                  sx={{ mr: 2 }}
+                >
+                  Start Scan
+                </Button>
+                <Tooltip title="Scan Technology">
+                  <Button
+                    variant="outlined"
+                    onClick={handleOpenTechMenu}
+                    startIcon={getTechIcon(scanTechnology)}
+                  >
+                    {getTechName(scanTechnology)}
+                  </Button>
+                </Tooltip>
+                <Menu
+                  anchorEl={techMenuAnchor}
+                  open={Boolean(techMenuAnchor)}
+                  onClose={handleCloseTechMenu}
+                >
+                  <MenuItem onClick={() => handleSelectTechnology('QR_CODE')}>
+                    <ListItemIcon>
+                      <QrCodeIcon />
+                    </ListItemIcon>
+                    <ListItemText>QR Code</ListItemText>
+                  </MenuItem>
+                  <MenuItem onClick={() => handleSelectTechnology('BARCODE')}>
+                    <ListItemIcon>
+                      <BarcodeReaderIcon />
+                    </ListItemIcon>
+                    <ListItemText>Barcode</ListItemText>
+                  </MenuItem>
+                  <MenuItem onClick={() => handleSelectTechnology('RFID')}>
+                    <ListItemIcon>
+                      <RfidIcon />
+                    </ListItemIcon>
+                    <ListItemText>RFID</ListItemText>
+                  </MenuItem>
+                  <MenuItem onClick={() => handleSelectTechnology('MANUAL')}>
+                    <ListItemIcon>
+                      <KeyboardIcon />
+                    </ListItemIcon>
+                    <ListItemText>Manual Entry</ListItemText>
+                  </MenuItem>
+                </Menu>
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, gap: 2 }}>
-              <Button
-                variant="outlined"
-                startIcon={<HistoryIcon />}
+          </Box>
+          
+          {/* Scan Mode Selection */}
+          <Box sx={{ mb: 4 }}>
+            <DashboardCard>
+              <Box className="card-header">
+                <Typography variant="h6">Select Scan Mode</Typography>
+              </Box>
+              <Box className="card-content">
+                <ToggleButtonGroup
+                  value={scanMode}
+                  exclusive
+                  onChange={handleScanModeChange}
+                  aria-label="scan mode"
+                  fullWidth
+                >
+                  <ToggleButton value="INVENTORY" aria-label="inventory">
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 1 }}>
+                      <InventoryIcon sx={{ mb: 1 }} />
+                      <Typography variant="body2">Inventory</Typography>
+                    </Box>
+                  </ToggleButton>
+                  
+                  <ToggleButton value="TRANSFER" aria-label="transfer">
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 1 }}>
+                      <LocalShippingIcon sx={{ mb: 1 }} />
+                      <Typography variant="body2">Transfer</Typography>
+                    </Box>
+                  </ToggleButton>
+                  
+                  <ToggleButton value="RECEIPT" aria-label="receipt">
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 1 }}>
+                      <ReceiptIcon sx={{ mb: 1 }} />
+                      <Typography variant="body2">Receipt</Typography>
+                    </Box>
+                  </ToggleButton>
+                  
+                  <ToggleButton value="SHIPPING" aria-label="shipping">
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 1 }}>
+                      <LocalShippingIcon sx={{ mb: 1 }} />
+                      <Typography variant="body2">Shipping</Typography>
+                    </Box>
+                  </ToggleButton>
+                  
+                  <ToggleButton value="VERIFICATION" aria-label="verification">
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 1 }}>
+                      <FactCheckIcon sx={{ mb: 1 }} />
+                      <Typography variant="body2">Verification</Typography>
+                    </Box>
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Box>
+            </DashboardCard>
+          </Box>
+          
+          {/* Scan Metrics */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>Today's Scan Metrics</Typography>
+            <Grid container spacing={2}>
+              <MetricCard title="Total Scans" value={scanMetrics.totalScansToday} icon={<QrCodeScannerIcon />} />
+              <MetricCard title="Successful" value={scanMetrics.successfulScans} icon={<FactCheckIcon />} color="success" />
+              <MetricCard title="Failed" value={scanMetrics.failedScans} icon={<ErrorOutlineIcon />} color="error" />
+              <MetricCard title="Products" value={scanMetrics.productsScanned} icon={<InventoryIcon />} color="info" />
+              <MetricCard title="Location Changes" value={scanMetrics.locationChanges} icon={<LocalShippingIcon />} color="warning" />
+              <MetricCard title="Syncs" value={scanMetrics.externalSystemSyncs} icon={<SyncIcon />} color="secondary" />
+            </Grid>
+          </Box>
+          
+          {/* System Integration */}
+          <Box sx={{ mb: 4 }}>
+            <DashboardCard>
+              <Box className="card-header">
+                <Typography variant="h6">System Integrations</Typography>
+                <Tooltip title="Sync with external systems now">
+                  <IconButton onClick={handleSyncWithExternalSystems}>
+                    <SyncIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              <Box className="card-content">
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={4}>
+                    <FormControlLabel
+                      control={
+                        <Switch 
+                          checked={integrationEnabled.erp} 
+                          onChange={() => handleIntegrationToggle('erp')} 
+                        />
+                      }
+                      label="ERP Integration"
+                    />
+                    <Typography variant="body2" color="textSecondary">
+                      Automatically sync scan data with your ERP system
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={4}>
+                    <FormControlLabel
+                      control={
+                        <Switch 
+                          checked={integrationEnabled.wms} 
+                          onChange={() => handleIntegrationToggle('wms')} 
+                        />
+                      }
+                      label="WMS Integration"
+                    />
+                    <Typography variant="body2" color="textSecondary">
+                      Automatically sync scan data with your WMS
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={4}>
+                    <FormControlLabel
+                      control={
+                        <Switch 
+                          checked={integrationEnabled.autoSync} 
+                          onChange={() => handleIntegrationToggle('autoSync')} 
+                        />
+                      }
+                      label="Auto Blockchain Sync"
+                    />
+                    <Typography variant="body2" color="textSecondary">
+                      Automatically record all scans on the blockchain
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+            </DashboardCard>
+          </Box>
+          
+          {/* Recent Scan History */}
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">Recent Scans</Typography>
+              <Button 
+                variant="text" 
+                endIcon={<HistoryIcon />}
                 onClick={handleViewScanHistory}
               >
-                History
+                View All History
               </Button>
-              <Button
-                variant="contained"
-                startIcon={<QrCodeScannerIcon />}
-                onClick={handleStartScan}
-              >
-                Start Scanning
-              </Button>
-            </Grid>
-          </Grid>
+            </Box>
+            <ScanHistoryTable scanHistory={scanHistory.slice(0, 5)} onViewDetails={handleViewHistoryDetails} />
+          </Box>
+        </>
+      )}
+      
+      {/* History Tab */}
+      {activeTab === 1 && (
+        <Box>
+          <Typography variant="h5" sx={{ mb: 3 }}>Scan History</Typography>
+          <ScanHistoryTable scanHistory={scanHistory} onViewDetails={handleViewHistoryDetails} />
         </Box>
-      </DashboardCard>
-
-      {/* Main Content - Either scan result or history */}
-      <DashboardCard elevation={0}>
-        <Box className="card-header">
-          <Typography variant="subtitle2">
-            {scanResult 
-              ? 'Scan Result' 
-              : showHistory 
-                ? 'Scan History' 
-                : 'Scanner Ready'}
-          </Typography>
-        </Box>
-        <Box className="card-content">
-          {scanResult ? (
+      )}
+      
+      {/* QR Scanner Dialog */}
+      <QRScannerComponent
+        open={scannerOpen}
+        onClose={handleCloseScanner}
+        onScan={handleScanComplete}
+        title={`${getTechName(scanTechnology)} Scanner`}
+        scanMode={scanMode}
+        scanTechnology={scanTechnology}
+      />
+      
+      {/* Scan Result Dialog */}
+      {scanResult && (
+        <Dialog
+          open={Boolean(scanResult)}
+          onClose={handleClearResult}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{ 
+            sx: { 
+              borderRadius: 0,
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            } 
+          }}
+        >
+          <Box sx={{ p: 3 }}>
             <ScanResultView
               scanResult={scanResult}
               onInventoryUpdate={handleInventoryUpdate}
@@ -389,54 +669,33 @@ const ScannerPage: React.FC = () => {
               onStartShipping={handleStartShipping}
               onClose={handleClearResult}
             />
-          ) : showHistory ? (
-            selectedHistoryItem ? (
-              <Box>
-                <Typography variant="h6" gutterBottom>
-                  Scan History Details
-                </Typography>
-                <Box sx={{ mb: 2 }}>
-                  <Button variant="outlined" onClick={handleCloseHistoryDetails}>
-                    Back to History
-                  </Button>
-                </Box>
-                <Typography>Detailed view for scan {selectedHistoryItem.id}</Typography>
-                {/* In a real app, you'd show full details here */}
-              </Box>
-            ) : (
-              <ScanHistoryTable
-                scanHistory={mockScanHistory}
-                onViewDetails={handleViewHistoryDetails}
-              />
-            )
-          ) : (
-            <Box sx={{ py: 8, textAlign: 'center' }}>
-              <QrCodeIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-              <Typography variant="h6" gutterBottom>
-                Scanner Ready
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Select a scan mode and click "Start Scanning" to begin
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<QrCodeScannerIcon />}
-                onClick={handleStartScan}
-              >
-                Start Scanning
-              </Button>
-            </Box>
-          )}
-        </Box>
-      </DashboardCard>
-
-      {/* QR Scanner Dialog */}
-      <QRScannerComponent
-        open={isQRScannerOpen}
-        onClose={() => setIsQRScannerOpen(false)}
-        onScan={handleScanComplete}
-        scanMode={scanMode}
-      />
+          </Box>
+        </Dialog>
+      )}
+      
+      {/* History Item Details Dialog */}
+      {selectedHistoryItem && (
+        <Dialog
+          open={Boolean(selectedHistoryItem)}
+          onClose={handleCloseHistoryDetails}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{ 
+            sx: { 
+              borderRadius: 0,
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            } 
+          }}
+        >
+          <Box sx={{ p: 3 }}>
+            <ScanResultView
+              scanResult={selectedHistoryItem}
+              onClose={handleCloseHistoryDetails}
+            />
+          </Box>
+        </Dialog>
+      )}
     </Container>
   );
 };

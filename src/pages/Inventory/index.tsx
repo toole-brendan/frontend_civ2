@@ -7,6 +7,14 @@ import {
   Button,
   styled,
   Paper,
+  Drawer,
+  useTheme,
+  Snackbar,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -21,7 +29,21 @@ import { InventoryFilters } from './components/InventoryFilters';
 import { InventoryTable } from './components/InventoryTable';
 import { ItemDetailsDrawer } from './components/ItemDetailsDrawer';
 import { AddItemModal } from './components/AddItemModal';
-import { InventoryItem, InventoryFilters as InventoryFiltersType, WarehouseStructure } from './types';
+import { InventoryItem, WarehouseStructure } from './types';
+import InventoryHeader from './components/InventoryHeader';
+import CategoryCards from './components/CategoryCards';
+import InventoryMetricsStrip from './components/InventoryMetricsStrip';
+import TechComponentsInventoryTable from './components/TechComponentsInventoryTable';
+import InventoryInsights from './components/InventoryInsights';
+import AdvancedSearchPanel from './components/AdvancedSearchPanel';
+
+// Import types and mock data
+import { 
+  TechComponentsInventoryData, 
+  TechComponentsInventoryItem,
+  SavedFilter
+} from './types';
+import { techComponentsInventoryData } from './mockData';
 
 // Base card styling following dashboard pattern
 const DashboardCard = styled(Paper)(({ theme }) => ({
@@ -188,279 +210,356 @@ const MetricCard: React.FC<{
 );
 
 const Inventory: React.FC = () => {
-  // State for warehouse selection
-  const [selectedWarehouse, setSelectedWarehouse] = useState<string[]>([
-    'main',
-  ]);
-
-  // State for inventory filters
-  const [filters, setFilters] = useState<InventoryFiltersType>({
-    search: '',
-    status: '',
-    category: '',
-    location: '',
-    warehouse: '',
-    supplier: '',
-    priceRange: { min: 0, max: 1000 },
+  const theme = useTheme();
+  const [data, setData] = useState<TechComponentsInventoryData>(techComponentsInventoryData);
+  const [filteredItems, setFilteredItems] = useState<TechComponentsInventoryItem[]>(data.items);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<TechComponentsInventoryItem | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'info' | 'warning' | 'error';
+  }>({
+    open: false,
+    message: '',
+    severity: 'info'
+  });
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    action: () => void;
+  }>({
+    open: false,
+    title: '',
+    message: '',
+    action: () => {}
   });
 
-  // State for drawer/modal visibility
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isAddItemOpen, setIsAddItemOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
-
-  // Handlers for warehouse and filter changes
-  const handleWarehouseSelect = (warehousePath: string[]) => {
-    setSelectedWarehouse(warehousePath);
+  // Handle search panel toggle
+  const handleSearchToggle = () => {
+    setSearchOpen(!searchOpen);
   };
 
-  const handleFilterChange = (newFilters: InventoryFiltersType) => {
-    setFilters(newFilters);
+  // Handle filter changes
+  const handleFilterChange = (filters: any) => {
+    // In a real app, this would filter based on the criteria
+    // For now, we'll just simulate filtering with a subset of items
+    const filtered = data.items.filter(item => {
+      if (filters.search && !item.name.toLowerCase().includes(filters.search.toLowerCase()) && 
+          !item.sku.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false;
+      }
+      
+      if (filters.categories.length > 0 && !filters.categories.includes(item.category)) {
+        return false;
+      }
+      
+      if (filters.suppliers.length > 0 && !filters.suppliers.includes(item.supplier)) {
+        return false;
+      }
+      
+      if (filters.locations.length > 0 && !item.locations.some(loc => 
+        filters.locations.includes(loc.warehouseId))) {
+        return false;
+      }
+      
+      return true;
+    });
+    
+    setFilteredItems(filtered);
+    
+    // Update active filters for display
+    const newActiveFilters: string[] = [];
+    if (filters.search) newActiveFilters.push(`Search: ${filters.search}`);
+    if (filters.categories.length) newActiveFilters.push(`Categories: ${filters.categories.length}`);
+    if (filters.suppliers.length) newActiveFilters.push(`Suppliers: ${filters.suppliers.length}`);
+    if (filters.locations.length) newActiveFilters.push(`Locations: ${filters.locations.length}`);
+    
+    setActiveFilters(newActiveFilters);
   };
 
-  const handleSaveFilter = () => {
-    console.log('Saving filter:', filters);
-    // Implement save filter functionality
+  // Handle saved filter load
+  const handleLoadSavedFilter = (filter: SavedFilter) => {
+    handleFilterChange(filter.filters);
+    setSearchOpen(false);
+    showSnackbar(`Loaded filter: ${filter.name}`, 'success');
   };
 
-  const handleClearFilters = () => {
-    setFilters({
-      search: '',
-      status: '',
-      category: '',
-      location: '',
-      warehouse: '',
-      supplier: '',
-      priceRange: { min: 0, max: 1000 },
+  // Handle save filter
+  const handleSaveFilter = (name: string, filters: any) => {
+    // In a real app, this would save to the backend
+    showSnackbar(`Filter "${name}" saved successfully`, 'success');
+    setSearchOpen(false);
+  };
+
+  // Handle view item details
+  const handleViewDetails = (item: TechComponentsInventoryItem) => {
+    setSelectedItem(item);
+    setDetailsOpen(true);
+  };
+
+  // Handle edit item
+  const handleEditItem = (item: TechComponentsInventoryItem) => {
+    // In a real app, this would open an edit form
+    showSnackbar(`Editing item: ${item.name}`, 'info');
+  };
+
+  // Handle transfer item
+  const handleTransferItem = (item: TechComponentsInventoryItem) => {
+    // In a real app, this would open a transfer dialog
+    showConfirmDialog(
+      'Transfer Item',
+      `Are you sure you want to transfer ${item.name}?`,
+      () => {
+        showSnackbar(`Transfer initiated for: ${item.name}`, 'success');
+      }
+    );
+  };
+
+  // Handle order item
+  const handleOrderItem = (item: TechComponentsInventoryItem) => {
+    // In a real app, this would open an order dialog
+    showConfirmDialog(
+      'Order Item',
+      `Are you sure you want to order more ${item.name}?`,
+      () => {
+        showSnackbar(`Order placed for: ${item.name}`, 'success');
+      }
+    );
+  };
+
+  // Handle view QR code
+  const handleViewQR = (item: TechComponentsInventoryItem) => {
+    // In a real app, this would display the QR code
+    showSnackbar(`Viewing QR code for: ${item.name}`, 'info');
+  };
+
+  // Handle recommendation action
+  const handleRecommendationAction = (action: string, itemId: string) => {
+    const item = data.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    switch (action) {
+      case 'order':
+        handleOrderItem(item);
+        break;
+      case 'transfer':
+        handleTransferItem(item);
+        break;
+      case 'rebalance':
+        showSnackbar(`Rebalancing inventory for: ${item.name}`, 'info');
+        break;
+      case 'substitute':
+        showSnackbar(`Finding substitutes for: ${item.name}`, 'info');
+        break;
+      case 'view':
+        handleViewDetails(item);
+        break;
+      case 'view_all':
+        showSnackbar('Viewing all recommendations', 'info');
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Handle category click
+  const handleCategoryClick = (categoryId: string) => {
+    const category = data.categories.find(c => c.id === categoryId);
+    if (!category) return;
+    
+    // Filter items by category
+    const filtered = data.items.filter(item => item.category === category.name);
+    setFilteredItems(filtered);
+    setActiveFilters([`Category: ${category.name}`]);
+    showSnackbar(`Viewing category: ${category.name}`, 'info');
+  };
+
+  // Show snackbar
+  const showSnackbar = (message: string, severity: 'success' | 'info' | 'warning' | 'error') => {
+    setSnackbar({
+      open: true,
+      message,
+      severity
     });
   };
 
-  // Handlers for item actions
-  const handleViewDetails = (item: InventoryItem) => {
-    setSelectedItem(item);
-    setIsDetailsOpen(true);
+  // Close snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar({
+      ...snackbar,
+      open: false
+    });
   };
 
-  const handleTransfer = (item: InventoryItem) => {
-    console.log('Transfer item:', item);
-    // Implement transfer item functionality
+  // Show confirmation dialog
+  const showConfirmDialog = (title: string, message: string, action: () => void) => {
+    setConfirmDialog({
+      open: true,
+      title,
+      message,
+      action
+    });
   };
 
-  const handleShip = (item: InventoryItem) => {
-    console.log('Ship item:', item);
-    // Implement ship item functionality
+  // Handle confirm dialog close
+  const handleConfirmDialogClose = (confirm: boolean) => {
+    if (confirm) {
+      confirmDialog.action();
+    }
+    setConfirmDialog({
+      ...confirmDialog,
+      open: false
+    });
   };
 
-  const handleViewQR = (item: InventoryItem) => {
-    console.log('View QR for item:', item);
-    // Implement view QR functionality
+  // Clear all filters
+  const handleClearFilters = () => {
+    setFilteredItems(data.items);
+    setActiveFilters([]);
+    showSnackbar('All filters cleared', 'info');
   };
-
-  const handleEdit = (item: InventoryItem) => {
-    console.log('Edit item:', item);
-    // Implement edit item functionality
-  };
-
-  const handleAddItem = (data: any) => {
-    console.log('Add new item:', data);
-    setIsAddItemOpen(false);
-    // Implement add item functionality
-  };
-
-  // Mock inventory items that match the InventoryTable component's expected format
-  const tableReadyItems = mockInventoryItems.map(item => ({
-    id: item.id,
-    name: item.name,
-    sku: item.sku,
-    category: {
-      id: mockCategories.find(c => c.name === item.category)?.id || '1',
-      name: item.category,
-      color: mockCategories.find(c => c.name === item.category)?.color
-    },
-    quantity: item.quantity,
-    location: {
-      id: mockLocations.find(l => l.name === item.location)?.id || 'loc1',
-      name: item.location,
-      path: mockLocations.find(l => l.name === item.location)?.path || []
-    },
-    unitPrice: item.price,
-    status: item.status === 'in_stock' 
-      ? 'In Stock' 
-      : item.status === 'reserved' 
-        ? 'Low Stock' 
-        : item.status === 'shipped' 
-          ? 'Out of Stock' 
-          : 'In Stock' as 'In Stock' | 'Low Stock' | 'Out of Stock' | 'On Order' | 'Discontinued',
-    lastUpdated: item.lastUpdated,
-    description: `Sample description for ${item.name}`
-  }));
 
   return (
-    <Container maxWidth={false}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <InventoryIcon sx={{ mr: 2 }} />
-        <PageTitle variant="h5">Inventory Management</PageTitle>
-      </Box>
-
-      {/* Metrics Row */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <MetricCard
-          title="Total Items"
-          value={mockInventoryMetrics.totalItems}
-          icon={<InventoryIcon />}
-        />
-        <MetricCard
-          title="In Stock"
-          value={mockInventoryMetrics.itemsInStock}
-          icon={<CheckCircleIcon />}
-          color="success"
-        />
-        <MetricCard
-          title="Reserved"
-          value={mockInventoryMetrics.itemsReserved}
-          icon={<WarningIcon />}
-          color="warning"
-        />
-        <MetricCard
-          title="Shipped"
-          value={mockInventoryMetrics.itemsShipped}
-          icon={<LocalShippingIcon />}
-          color="info"
-        />
-      </Grid>
-
-      {/* Add Item Button */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => setIsAddItemOpen(true)}
-        >
-          Add Item
-        </Button>
-      </Box>
-
-      {/* Main Content Area */}
-      <Grid container spacing={3}>
-        {/* Warehouse Selector */}
-        <Grid item xs={12} md={3}>
-          <DashboardCard elevation={0}>
-            <Box className="card-header">
-              <Typography variant="subtitle2">Warehouse Structure</Typography>
-            </Box>
-            <Box className="card-content">
-              <WarehouseSelector
-                warehouses={[mockWarehouseStructure]}
-                onLocationSelect={handleWarehouseSelect}
-                selectedPath={selectedWarehouse}
-              />
-            </Box>
-          </DashboardCard>
-        </Grid>
-
-        {/* Inventory List */}
-        <Grid item xs={12} md={9}>
-          <DashboardCard elevation={0}>
-            <Box className="card-header">
-              <Typography variant="subtitle2">Inventory Items</Typography>
-            </Box>
-            <Box sx={{ p: 2 }}>
-              <InventoryFilters
-                categories={mockCategories}
-                initialFilters={{
-                  search: filters.search,
-                  category: filters.category ? [filters.category] : [],
-                  status: filters.status ? [filters.status] : [],
-                  sortBy: 'name',
-                  sortOrder: 'asc',
-                  priceRange: [0, 1000],
-                  dateRange: [null, null],
-                  stockLevel: [0, 100]
-                }}
-                onFilterChange={(newFilters) => {
-                  setFilters({
-                    ...filters,
-                    search: newFilters.search,
-                    status: newFilters.status[0] || '',
-                    category: newFilters.category[0] || '',
-                    priceRange: { min: newFilters.priceRange[0], max: newFilters.priceRange[1] }
-                  });
-                }}
-                onClearFilters={handleClearFilters}
-              />
-              
-              <InventoryTable
-                items={tableReadyItems}
-                loading={false}
-                onViewDetails={(id) => {
-                  const item = mockInventoryItems.find(item => item.id === id);
-                  if (item) handleViewDetails(item);
-                }}
-                onEdit={(id) => {
-                  const item = mockInventoryItems.find(item => item.id === id);
-                  if (item) handleEdit(item);
-                }}
-                onDelete={(id) => console.log('Delete item:', id)}
-                onDuplicate={(id) => console.log('Duplicate item:', id)}
-                onShowQrCode={(id) => {
-                  const item = mockInventoryItems.find(item => item.id === id);
-                  if (item) handleViewQR(item);
-                }}
-                onViewHistory={(id) => console.log('View history for item:', id)}
-                onTransfer={(id) => {
-                  const item = mockInventoryItems.find(item => item.id === id);
-                  if (item) handleTransfer(item);
-                }}
-              />
-            </Box>
-          </DashboardCard>
-        </Grid>
-      </Grid>
-
-      {/* Modals and Drawers */}
-      {selectedItem && (
-        <ItemDetailsDrawer
-          open={isDetailsOpen}
-          item={{
-            ...selectedItem,
-            category: {
-              id: mockCategories.find(c => c.name === selectedItem.category)?.id || '1',
-              name: selectedItem.category,
-              color: mockCategories.find(c => c.name === selectedItem.category)?.color || '#4caf50'
-            },
-            location: {
-              id: mockLocations.find(l => l.name === selectedItem.location)?.id || 'loc1',
-              name: selectedItem.location,
-              path: mockLocations.find(l => l.name === selectedItem.location)?.path || []
-            },
-            unitPrice: selectedItem.price,
-            status: selectedItem.status === 'in_stock' ? 'In Stock' : selectedItem.status === 'reserved' ? 'Low Stock' : 'Out of Stock'
-          }}
-          categories={mockCategories}
-          locations={mockLocations}
-          onClose={() => setIsDetailsOpen(false)}
-          onSave={(item) => console.log('Save item:', item)}
-          onDelete={(id) => console.log('Delete item:', id)}
-          onDuplicate={(id) => console.log('Duplicate item:', id)}
-          onTransfer={(id) => {
-            const item = mockInventoryItems.find(item => item.id === id);
-            if (item) handleTransfer(item);
-          }}
-          onShowQrCode={(id) => {
-            const item = mockInventoryItems.find(item => item.id === id);
-            if (item) handleViewQR(item);
-          }}
-        />
-      )}
-      
-      <AddItemModal
-        open={isAddItemOpen}
-        categories={mockCategories}
-        locations={mockLocations}
-        onClose={() => setIsAddItemOpen(false)}
-        onAddItem={handleAddItem}
+    <Container maxWidth={false} sx={{ mt: 3, mb: 4 }}>
+      {/* Header with metrics */}
+      <InventoryHeader 
+        metrics={data.metrics}
+        activeFilters={activeFilters.length}
+        onAdvancedSearchClick={handleSearchToggle}
+        onFilterClick={handleSearchToggle}
+        onExportClick={() => showSnackbar('Exporting inventory data', 'info')}
+        onImportClick={() => showSnackbar('Importing inventory data', 'info')}
+        onAddItemClick={() => showSnackbar('Adding new item', 'info')}
       />
+
+      {/* Metrics Strip */}
+      <Box sx={{ mt: 3, mb: 3 }}>
+        <InventoryMetricsStrip metrics={data.metrics} />
+      </Box>
+
+      {/* Category Cards */}
+      <Box sx={{ mt: 3, mb: 3 }}>
+        <CategoryCards 
+          categories={data.categories} 
+          onCategoryClick={handleCategoryClick} 
+        />
+      </Box>
+
+      {/* Main Content */}
+      <Grid container spacing={3} sx={{ mt: 1 }}>
+        {/* Inventory Table */}
+        <Grid item xs={12} md={9}>
+          <TechComponentsInventoryTable 
+            items={filteredItems}
+            onViewDetails={handleViewDetails}
+            onEditItem={handleEditItem}
+            onTransferItem={handleTransferItem}
+            onOrderItem={handleOrderItem}
+            onViewQR={handleViewQR}
+          />
+        </Grid>
+
+        {/* Insights Panel */}
+        <Grid item xs={12} md={3}>
+          <InventoryInsights 
+            recommendations={data.recommendations}
+            onActionClick={handleRecommendationAction}
+          />
+        </Grid>
+      </Grid>
+
+      {/* Advanced Search Drawer */}
+      <Drawer
+        anchor="right"
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        sx={{
+          '& .MuiDrawer-paper': { 
+            width: { xs: '100%', sm: 450 },
+            padding: 2
+          },
+        }}
+      >
+        <AdvancedSearchPanel 
+          open={searchOpen}
+          onSearch={handleFilterChange}
+          onSaveSearch={handleSaveFilter}
+          onClose={() => setSearchOpen(false)}
+          savedFilters={data.savedFilters}
+          onLoadSavedFilter={handleLoadSavedFilter}
+          categories={data.categories.map(c => c.name)}
+          suppliers={Array.from(new Set(data.items.map(item => item.supplier)))}
+          locations={data.warehouses.map(w => w.id)}
+          subcategories={Array.from(new Set(data.items.map(item => item.subcategory)))}
+          onClearFilters={handleClearFilters}
+          initialFilters={{
+            search: '',
+            sku: '',
+            description: '',
+            suppliers: [],
+            categories: [],
+            subcategories: [],
+            locations: [],
+            stockLevelRange: { min: 0, max: 10000 },
+            receivedDateRange: { start: null, end: null },
+            lifecycleStatus: [],
+            blockchainVerified: null
+          }}
+        />
+      </Drawer>
+
+      {/* Item Details Drawer */}
+      <Drawer
+        anchor="right"
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        sx={{
+          '& .MuiDrawer-paper': { 
+            width: { xs: '100%', sm: 600 },
+            padding: 0
+          },
+        }}
+      >
+        {selectedItem && (
+          <ItemDetailsDrawer 
+            item={selectedItem}
+            onClose={() => setDetailsOpen(false)}
+          />
+        )}
+      </Drawer>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => handleConfirmDialogClose(false)}
+      >
+        <DialogTitle>{confirmDialog.title}</DialogTitle>
+        <DialogContent>
+          {confirmDialog.message}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleConfirmDialogClose(false)}>Cancel</Button>
+          <Button onClick={() => handleConfirmDialogClose(true)} variant="contained" color="primary">
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

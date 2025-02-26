@@ -12,11 +12,18 @@ import {
   Switch,
   FormControlLabel,
   CircularProgress,
+  TextField,
+  Paper,
+  Grid,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import FlipCameraIosIcon from '@mui/icons-material/FlipCameraIos';
-import { ScanMode } from '../types';
+import ViewWeekIcon from '@mui/icons-material/ViewWeek';
+import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
+import KeyboardIcon from '@mui/icons-material/Keyboard';
+import { ScanMode, ScanTechnology } from '../types';
+import QRScanner from './QRScanner';
 
 interface QRScannerComponentProps {
   open: boolean;
@@ -24,6 +31,7 @@ interface QRScannerComponentProps {
   onScan: (result: { productId: string; batchNumber: string; type: string }) => void;
   title?: string;
   scanMode: ScanMode;
+  scanTechnology?: ScanTechnology;
 }
 
 const QRScannerComponent: React.FC<QRScannerComponentProps> = ({
@@ -32,98 +40,191 @@ const QRScannerComponent: React.FC<QRScannerComponentProps> = ({
   onScan,
   title = 'Scan QR Code',
   scanMode,
+  scanTechnology = 'QR_CODE',
 }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [scanning, setScanning] = useState(false);
   const [useFrontCamera, setUseFrontCamera] = useState(false);
-  const [verifying, setVerifying] = useState(false);
+  const [manualInput, setManualInput] = useState({
+    productId: '',
+    batchNumber: '',
+    type: 'PRODUCT'
+  });
 
+  // Reset state when dialog opens
   useEffect(() => {
-    let stream: MediaStream | null = null;
+    if (open) {
+      setError(null);
+      setIsLoading(false);
+      setManualInput({
+        productId: '',
+        batchNumber: '',
+        type: 'PRODUCT'
+      });
+    }
+  }, [open]);
 
-    const startCamera = async () => {
+  const handleQRScan = (data: string) => {
+    try {
+      // Parse QR code data
+      // Expected format: JSON or URL-like string with product ID and batch number
+      let parsedData;
+      
       try {
-        if (!open) return;
-
-        // Stop any existing stream
-        if (videoRef.current && videoRef.current.srcObject) {
-          const existingStream = videoRef.current.srcObject as MediaStream;
-          existingStream.getTracks().forEach(track => track.stop());
+        // Try to parse as JSON
+        parsedData = JSON.parse(data);
+      } catch (e) {
+        // If not JSON, try to parse as URL or custom format
+        // Format could be: product:PROD-123:BATCH-456 or similar
+        const parts = data.split(':');
+        if (parts.length >= 3) {
+          parsedData = {
+            type: parts[0],
+            productId: parts[1],
+            batchNumber: parts[2]
+          };
+        } else {
+          throw new Error('Invalid QR code format');
         }
-
-        const constraints = {
-          video: { facingMode: useFrontCamera ? 'user' : 'environment' }
-        };
-
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          setScanning(true);
-          setError(null);
-        }
-      } catch (err) {
-        setError('Unable to access camera. Please ensure you have granted camera permissions.');
-        console.error('Error accessing camera:', err);
       }
-    };
-
-    startCamera();
-
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      
+      const result = {
+        productId: parsedData.productId || '',
+        batchNumber: parsedData.batchNumber || '',
+        type: parsedData.type || 'PRODUCT'
+      };
+      
+      if (!result.productId) {
+        throw new Error('Product ID not found in QR code');
       }
-      setScanning(false);
-    };
-  }, [open, useFrontCamera]);
+      
+      onScan(result);
+    } catch (err) {
+      console.error('Error parsing QR code data:', err, data);
+      setError(`Could not parse QR code data: ${(err as Error).message}`);
+    }
+  };
 
-  const handleScan = () => {
-    // Simulate verification process
-    setVerifying(true);
+  const handleQRError = (err: Error) => {
+    console.error('QR Scanner error:', err);
+    setError(`Scanner error: ${err.message}`);
+  };
+
+  const handleManualSubmit = () => {
+    if (manualInput.productId && manualInput.batchNumber) {
+      onScan(manualInput);
+    } else {
+      setError('Please fill in all required fields');
+    }
+  };
+
+  const handleRFIDScan = () => {
+    setIsLoading(true);
+    // Simulate RFID scan
     setTimeout(() => {
-      setVerifying(false);
-      
-      // Different mock data based on the scan mode
-      let mockResult;
-      
-      switch (scanMode) {
-        case 'INVENTORY':
-          mockResult = {
-            productId: 'ETHIO-YIRGACHEFFE-2023',
-            batchNumber: 'BATCH-Y2023-04',
-            type: 'PRODUCT'
-          };
-          break;
-        case 'TRANSFER':
-          mockResult = {
-            productId: 'GUAT-HUEHUETENANGO-2023',
-            batchNumber: 'BATCH-H2023-08',
-            type: 'TRANSFER'
-          };
-          break;
-        case 'SHIPPING':
-          mockResult = {
-            productId: 'COL-NARIÑO-2023',
-            batchNumber: 'BATCH-N2023-12',
-            type: 'ORDER'
-          };
-          break;
-        default:
-          mockResult = {
-            productId: 'KEN-NYERI-2023',
-            batchNumber: 'BATCH-N2023-06',
-            type: 'PRODUCT'
-          };
-      }
-      
-      onScan(mockResult);
-      onClose();
+      setIsLoading(false);
+      onScan({
+        productId: 'PROD-A7X-001',
+        batchNumber: 'BATCH-2023-09-15-001',
+        type: 'PRODUCT',
+      });
     }, 1500);
   };
 
   const toggleCamera = () => {
     setUseFrontCamera(!useFrontCamera);
+  };
+
+  const renderScannerContent = () => {
+    switch (scanTechnology) {
+      case 'QR_CODE':
+      case 'BARCODE':
+        return (
+          <Box sx={{ position: 'relative', width: '100%', height: 400 }}>
+            <QRScanner 
+              onScan={handleQRScan}
+              onError={handleQRError}
+              useFrontCamera={useFrontCamera}
+            />
+          </Box>
+        );
+        
+      case 'RFID':
+        return (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <SettingsInputAntennaIcon sx={{ fontSize: 80, color: 'primary.main', mb: 2 }} />
+            <Typography variant="h6" gutterBottom>
+              RFID Scanner Ready
+            </Typography>
+            <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+              Place the RFID tag near the reader to scan
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={handleRFIDScan}
+              disabled={isLoading}
+              startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <SettingsInputAntennaIcon />}
+            >
+              {isLoading ? 'Scanning...' : 'Simulate RFID Scan'}
+            </Button>
+          </Box>
+        );
+        
+      case 'MANUAL':
+        return (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Manual Entry
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  label="Product ID"
+                  fullWidth
+                  value={manualInput.productId}
+                  onChange={(e) => setManualInput({...manualInput, productId: e.target.value})}
+                  required
+                  error={error?.includes('Product ID')}
+                  helperText={error?.includes('Product ID') ? error : ''}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Batch Number"
+                  fullWidth
+                  value={manualInput.batchNumber}
+                  onChange={(e) => setManualInput({...manualInput, batchNumber: e.target.value})}
+                  required
+                  error={error?.includes('Batch')}
+                  helperText={error?.includes('Batch') ? error : ''}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Button 
+                  variant="contained" 
+                  color="primary"
+                  fullWidth
+                  onClick={handleManualSubmit}
+                  disabled={!manualInput.productId || !manualInput.batchNumber}
+                >
+                  Submit
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        );
+        
+      default:
+        return (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Alert severity="error">
+              Unsupported scan technology: {scanTechnology}
+            </Alert>
+          </Box>
+        );
+    }
   };
 
   return (
@@ -133,129 +234,59 @@ const QRScannerComponent: React.FC<QRScannerComponentProps> = ({
       maxWidth="sm"
       fullWidth
       PaperProps={{
-        sx: { borderRadius: 2 }
+        sx: {
+          borderRadius: 0,
+          boxShadow: 8,
+        }
       }}
     >
-      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h6">{title} - {scanMode} Mode</Typography>
-        <IconButton
-          aria-label="close"
-          onClick={onClose}
-          sx={{ color: 'grey.500' }}
-        >
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {scanTechnology === 'QR_CODE' && <QrCodeScannerIcon sx={{ mr: 1 }} color="primary" />}
+          {scanTechnology === 'BARCODE' && <ViewWeekIcon sx={{ mr: 1 }} color="primary" />}
+          {scanTechnology === 'RFID' && <SettingsInputAntennaIcon sx={{ mr: 1 }} color="primary" />}
+          {scanTechnology === 'MANUAL' && <KeyboardIcon sx={{ mr: 1 }} color="primary" />}
+          <Typography variant="h6">
+            {title} - {scanMode.charAt(0) + scanMode.slice(1).toLowerCase()} Mode
+          </Typography>
+        </Box>
+        <IconButton edge="end" onClick={onClose} aria-label="close">
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-
-      <DialogContent>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+      
+      <DialogContent sx={{ p: 0 }}>
+        {error && error !== 'No QR code found in image' && (
+          <Alert 
+            severity="error" 
+            sx={{ m: 2 }}
+            onClose={() => setError(null)}
+          >
             {error}
           </Alert>
         )}
         
-        <Box
-          sx={{
-            position: 'relative',
-            width: '100%',
-            height: 0,
-            paddingBottom: '75%',
-            backgroundColor: 'black',
-            borderRadius: 1,
-            overflow: 'hidden',
-          }}
-        >
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-          {scanning && !verifying && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '200px',
-                height: '200px',
-                border: '2px solid white',
-                borderRadius: 1,
-                boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
-              }}
+        {renderScannerContent()}
+      </DialogContent>
+      
+      <DialogActions sx={{ justifyContent: 'space-between', p: 2, borderTop: 1, borderColor: 'divider' }}>
+        <Box>
+          {(scanTechnology === 'QR_CODE' || scanTechnology === 'BARCODE') && (
+            <FormControlLabel
+              control={
+                <Switch 
+                  checked={useFrontCamera}
+                  onChange={toggleCamera}
+                  color="primary"
+                />
+              }
+              label="Use front camera"
             />
-          )}
-          {verifying && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
-              <CircularProgress color="primary" />
-              <Typography color="white" sx={{ mt: 2 }}>
-                Verifying on blockchain...
-              </Typography>
-            </Box>
           )}
         </Box>
-        
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          align="center"
-          sx={{ mt: 2 }}
-        >
-          Position the QR code within the frame to scan
-        </Typography>
-
-        <FormControlLabel
-          control={
-            <Switch
-              checked={useFrontCamera}
-              onChange={toggleCamera}
-              color="primary"
-            />
-          }
-          label="Use front camera"
-          sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}
-        />
-      </DialogContent>
-
-      <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
-        <Button
-          onClick={onClose}
-          variant="outlined"
-        >
+        <Button onClick={onClose} color="primary">
           Cancel
         </Button>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton
-            onClick={toggleCamera}
-            color="primary"
-          >
-            <FlipCameraIosIcon />
-          </IconButton>
-          <Button
-            onClick={handleScan}
-            variant="contained"
-            startIcon={<QrCodeScannerIcon />}
-            disabled={!scanning || verifying}
-          >
-            {verifying ? 'Verifying...' : 'Scan'}
-          </Button>
-        </Box>
       </DialogActions>
     </Dialog>
   );

@@ -62,6 +62,9 @@ const InitiateTransferForm: React.FC<InitiateTransferFormProps> = ({
       name: 'Mock Item',
       serialNumber: result.serialNumber,
       currentCustodian: 'Current User',
+      quantity: 1,
+      unitPrice: 100,
+      totalValue: 100
     };
     setSelectedItems((prev) => [...prev, mockItem]);
   };
