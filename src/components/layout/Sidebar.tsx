@@ -3,7 +3,6 @@ import {
   Drawer,
   List,
   Divider,
-  useTheme,
   Box,
   Typography,
   IconButton,
@@ -16,6 +15,7 @@ import {
   Tooltip,
   Button,
 } from '@mui/material';
+import { useTheme as useMuiTheme } from '@mui/material/styles';
 import {
   AddCircleOutline as CreateTransferIcon,
   Description as ReportIcon,
@@ -27,11 +27,20 @@ import {
   Logout as LogoutIcon,
   NotificationsActive as NotificationsActiveIcon,
   QrCode as QrCodeIcon,
+  Warehouse as WarehouseIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { NavItemConfig, DrawerVariant } from '../../types/navigation';
 import NavItem from './NavItem';
 import { NAV_ITEMS, ROUTES, icons } from '../../app/routes';
+import { useTheme } from '../../theme/ThemeContext';
+
+// Add these routes for the sidebar actions (not yet implemented in main routes)
+const ADDITIONAL_ROUTES = {
+  SCANNER: '/scanner',
+  CREATE_TRANSFER: '/create-transfer',
+  GENERATE_REPORT: '/reports',
+};
 
 // Enhanced navigation item interface that extends NavItemConfig
 interface EnhancedNavItem extends NavItemConfig {
@@ -53,7 +62,7 @@ const mockUser = {
   name: 'Michael Chen',
   role: 'Operations Director',
   company: 'TechComponents International',
-  avatar: '/assets/images/avatars/1.jpg',
+  avatar: '',
 };
 
 interface SidebarProps {
@@ -71,12 +80,22 @@ const Sidebar: React.FC<SidebarProps> = ({
   navItems,
   isMobile,
 }) => {
-  const theme = useTheme();
+  const { mode, toggleTheme } = useTheme();
+  const theme = useMuiTheme();
   const navigate = useNavigate();
   const location = useLocation();
   
-  const [collapsed, setCollapsed] = useState(false);
-  const [warehousesOpen, setWarehousesOpen] = useState(true);
+  // Initialize collapsed state from localStorage or default to false
+  const [collapsed, setCollapsed] = useState(() => {
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    return savedState ? JSON.parse(savedState) : false;
+  });
+  
+  // Initialize warehousesOpen state from localStorage or default to false
+  const [warehousesOpen, setWarehousesOpen] = useState(() => {
+    const savedState = localStorage.getItem('warehousesOpen');
+    return savedState ? JSON.parse(savedState) : false;
+  });
   
   const drawerWidth = collapsed ? 72 : 260;
 
@@ -86,11 +105,15 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const toggleCollapse = () => {
-    setCollapsed(!collapsed);
+    const newState = !collapsed;
+    setCollapsed(newState);
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(newState));
   };
 
   const toggleWarehouses = () => {
-    setWarehousesOpen(!warehousesOpen);
+    const newState = !warehousesOpen;
+    setWarehousesOpen(newState);
+    localStorage.setItem('warehousesOpen', JSON.stringify(newState));
   };
 
   const getStatusColor = (status: string) => {
@@ -107,35 +130,24 @@ const Sidebar: React.FC<SidebarProps> = ({
   // Enhanced navigation items with badges and counts
   const enhancedNavItems: EnhancedNavItem[] = [
     {
-      ...navItems.find(item => item.title === 'Dashboard') || { title: 'Dashboard', path: ROUTES.DASHBOARD, icon: icons.DashboardIcon },
+      ...navItems.find(item => item.title === 'Command Center') || { title: 'Command Center', path: ROUTES.DASHBOARD, icon: icons.DashboardIcon },
       badge: 5, // Unread notifications
     },
     {
-      ...navItems.find(item => item.title === 'Inventory') || { title: 'Inventory', path: ROUTES.INVENTORY, icon: icons.InventoryIcon },
+      ...navItems.find(item => item.title === 'Inventory Management') || { title: 'Inventory Management', path: ROUTES.INVENTORY, icon: icons.InventoryIcon },
       subtitle: '12,483 SKUs',
     },
     {
-      ...navItems.find(item => item.title === 'Transfers') || { title: 'Transfers', path: ROUTES.TRANSFERS, icon: icons.TransfersIcon },
+      ...navItems.find(item => item.title === 'Orders & Shipments') || { title: 'Orders & Shipments', path: ROUTES.ORDERS_SHIPMENTS, icon: icons.ShippingIcon },
       subtitle: '18 active',
     },
     {
-      ...navItems.find(item => item.title === 'Suppliers') || { title: 'Suppliers', path: ROUTES.SUPPLIERS, icon: icons.SuppliersIcon },
+      ...navItems.find(item => item.title === 'Supplier Hub') || { title: 'Supplier Hub', path: ROUTES.SUPPLIERS, icon: icons.BusinessIcon },
       subtitle: '15 total',
     },
     {
-      ...navItems.find(item => item.title === 'Payments') || { title: 'Payments', path: ROUTES.PAYMENTS, icon: icons.PaymentsIcon },
+      ...navItems.find(item => item.title === 'Financial Center') || { title: 'Financial Center', path: ROUTES.FINANCIAL, icon: icons.AccountBalanceWalletIcon },
       subtitle: '3 due',
-    },
-    {
-      ...navItems.find(item => item.title === 'Alerts') || { title: 'Alerts', path: ROUTES.ALERTS, icon: icons.AlertsIcon },
-      badge: 8,
-      badgeColor: 'error',
-    },
-    {
-      ...navItems.find(item => item.title === 'Analytics') || { title: 'Analytics', path: ROUTES.ANALYTICS, icon: icons.AnalyticsIcon },
-    },
-    {
-      ...navItems.find(item => item.title === 'Team') || { title: 'Team', path: ROUTES.TEAM, icon: icons.TeamIcon },
     },
     {
       ...navItems.find(item => item.title === 'Settings') || { title: 'Settings', path: ROUTES.SETTINGS, icon: icons.SettingsIcon },
@@ -254,6 +266,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             duration: theme.transitions.duration.enteringScreen,
           }),
           overflowX: 'hidden',
+          marginTop: { xs: '64px', md: '72px' },
+          height: { xs: 'calc(100% - 64px)', md: 'calc(100% - 72px)' },
+          display: 'flex',
+          flexDirection: 'column',
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -269,77 +285,15 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
       }}
     >
-      {/* User Profile Section */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: collapsed ? 'column' : 'row',
-          alignItems: 'center',
-          padding: collapsed ? 1 : 2,
-          paddingTop: theme.spacing(2),
-          paddingBottom: theme.spacing(2),
-        }}
-      >
-        <Avatar
-          src={mockUser.avatar}
-          alt={mockUser.name}
-          sx={{
-            width: collapsed ? 40 : 48,
-            height: collapsed ? 40 : 48,
-            marginRight: collapsed ? 0 : 2,
-            marginBottom: collapsed ? 1 : 0,
-            border: `2px solid ${theme.palette.primary.main}`,
-          }}
-        />
-        
-        {!collapsed && (
-          <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
-            <Typography 
-              variant="subtitle1" 
-              noWrap 
-              sx={{ 
-                color: theme.palette.mode === 'dark' ? 'white' : 'black', 
-                fontWeight: 600 
-              }}
-            >
-              {mockUser.name}
-            </Typography>
-            <Typography 
-              variant="caption" 
-              noWrap 
-              sx={{ 
-                color: theme.palette.mode === 'dark' 
-                  ? 'rgba(255, 255, 255, 0.7)' 
-                  : 'rgba(0, 0, 0, 0.7)' 
-              }}
-            >
-              {mockUser.role} • {mockUser.company}
-            </Typography>
-          </Box>
-        )}
-        
-        <IconButton
-          onClick={toggleCollapse}
-          sx={{
-            color: theme.palette.mode === 'dark' 
-              ? 'rgba(255, 255, 255, 0.7)' 
-              : 'rgba(0, 0, 0, 0.7)',
-            display: { xs: 'none', sm: 'flex' },
-          }}
-        >
-          {collapsed ? <ChevronRight /> : <ChevronLeft />}
-        </IconButton>
-      </Box>
-      
-      <Divider sx={{ backgroundColor: theme.palette.divider }} />
-      
       {/* Main Navigation Items */}
       <Box
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          height: 'calc(100% - 80px)',
-          overflow: 'auto',
+          flexGrow: 1, // Take available space
+          overflow: 'auto', // Enable scrolling for this section
+          minHeight: 0, // Important for flexbox scrolling
+          pt: 2, // Add padding at the top
         }}
       >
         <List sx={{ py: 1 }}>
@@ -360,7 +314,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   : 'rgba(0, 0, 0, 0.7)' 
               }}
             >
-              <icons.WarehouseIcon />
+              <WarehouseIcon />
             </ListItemIcon>
             {!collapsed && (
               <>
@@ -417,11 +371,43 @@ const Sidebar: React.FC<SidebarProps> = ({
             </List>
           </Collapse>
         </List>
-        
-        <Box sx={{ flexGrow: 1 }} />
+      </Box>
+      
+      {/* Bottom Actions Section - Fixed at bottom */}
+      <Box sx={{ flexShrink: 0, mt: 'auto' }}>
+        {/* Sidebar Toggle */}
+        <Box sx={{ 
+          justifyContent: 'center', 
+          mb: 2,
+          display: { xs: 'none', sm: 'flex' },
+        }}>
+          <Tooltip title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
+            <IconButton
+              onClick={toggleCollapse}
+              sx={{
+                color: theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.7)' 
+                  : 'rgba(0, 0, 0, 0.7)',
+                border: theme.palette.mode === 'dark' 
+                  ? '1px solid rgba(255, 255, 255, 0.2)' 
+                  : '1px solid rgba(0, 0, 0, 0.2)',
+                '&:hover': {
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.05)' 
+                    : 'rgba(0, 0, 0, 0.05)',
+                },
+              }}
+            >
+              {collapsed ? <ChevronRight /> : <ChevronLeft />}
+            </IconButton>
+          </Tooltip>
+        </Box>
         
         {/* Quick Actions */}
-        <Box sx={{ p: collapsed ? 1 : 2 }}>
+        <Box sx={{ 
+          p: collapsed ? 1 : 2,
+          pt: 0,
+        }}>
           {!collapsed ? (
             <>
               <Button
@@ -429,7 +415,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 variant="contained"
                 color="primary"
                 startIcon={<QrCodeIcon />}
-                onClick={() => navigate(ROUTES.SCANNER)}
+                onClick={() => navigate(ADDITIONAL_ROUTES.SCANNER)}
                 sx={{ mb: 1 }}
               >
                 Scan QR Code
@@ -438,7 +424,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 fullWidth
                 variant="outlined"
                 startIcon={<CreateTransferIcon />}
-                onClick={() => navigate(ROUTES.CREATE_TRANSFER)}
+                onClick={() => navigate(ADDITIONAL_ROUTES.CREATE_TRANSFER)}
                 sx={{ 
                   mb: 1, 
                   color: theme.palette.mode === 'dark' ? 'white' : 'inherit',
@@ -453,8 +439,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                 fullWidth
                 variant="outlined"
                 startIcon={<ReportIcon />}
-                onClick={() => navigate(ROUTES.GENERATE_REPORT)}
+                onClick={() => navigate(ADDITIONAL_ROUTES.GENERATE_REPORT)}
                 sx={{ 
+                  mb: 1,
                   color: theme.palette.mode === 'dark' ? 'white' : 'inherit',
                   borderColor: theme.palette.mode === 'dark' 
                     ? 'rgba(255, 255, 255, 0.3)' 
@@ -469,7 +456,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <Tooltip title="Scan QR Code" placement="right">
                 <IconButton
                   color="primary"
-                  onClick={() => navigate(ROUTES.SCANNER)}
+                  onClick={() => navigate(ADDITIONAL_ROUTES.SCANNER)}
                   sx={{ 
                     backgroundColor: theme.palette.primary.main, 
                     color: 'white', 
@@ -483,7 +470,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               </Tooltip>
               <Tooltip title="Create Transfer" placement="right">
                 <IconButton
-                  onClick={() => navigate(ROUTES.CREATE_TRANSFER)}
+                  onClick={() => navigate(ADDITIONAL_ROUTES.CREATE_TRANSFER)}
                   sx={{ 
                     border: theme.palette.mode === 'dark' 
                       ? '1px solid rgba(255, 255, 255, 0.3)' 
@@ -496,11 +483,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               </Tooltip>
               <Tooltip title="Generate Report" placement="right">
                 <IconButton
-                  onClick={() => navigate(ROUTES.GENERATE_REPORT)}
+                  onClick={() => navigate(ADDITIONAL_ROUTES.GENERATE_REPORT)}
                   sx={{ 
                     border: theme.palette.mode === 'dark' 
                       ? '1px solid rgba(255, 255, 255, 0.3)' 
-                      : '1px solid rgba(0, 0, 0, 0.23)', 
+                      : '1px solid rgba(0, 0, 0, 0.23)',
                     color: theme.palette.text.primary 
                   }}
                 >
@@ -512,12 +499,17 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Box>
         
         {/* Logout Button */}
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: collapsed ? 'center' : 'flex-start', px: collapsed ? 0 : 2 }}>
+        <Box sx={{ 
+          pb: 2, 
+          display: 'flex', 
+          justifyContent: collapsed ? 'center' : 'flex-start', 
+          px: collapsed ? 0 : 2,
+        }}>
           <Button
             variant="text"
             color="inherit"
             onClick={handleLogout}
-            startIcon={!collapsed && <icons.LogoutIcon />}
+            startIcon={!collapsed && <LogoutIcon />}
             sx={{ 
               color: theme.palette.mode === 'dark' 
                 ? 'rgba(255, 255, 255, 0.7)' 
@@ -526,7 +518,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               minWidth: collapsed ? 'auto' : '100%',
             }}
           >
-            {collapsed ? <icons.LogoutIcon /> : 'Logout'}
+            {collapsed ? <LogoutIcon /> : 'Logout'}
           </Button>
         </Box>
       </Box>

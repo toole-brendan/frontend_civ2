@@ -1,6 +1,8 @@
 import React from 'react';
-import { AppBar as MuiAppBar, styled, useTheme } from '@mui/material';
+import { AppBar as MuiAppBar, styled } from '@mui/material';
+import { useTheme as useMuiTheme } from '@mui/material/styles';
 import { AppBarContent } from './AppBar/AppBarContent';
+import { useTheme } from '../../theme/ThemeContext';
 
 const StyledAppBar = styled(MuiAppBar)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' 
@@ -28,14 +30,15 @@ const StyledAppBar = styled(MuiAppBar)(({ theme }) => ({
 export interface AppBarProps {
   isMobile: boolean;
   onDrawerToggle: () => void;
-  userDisplayName: string;
 }
 
 export const AppBar: React.FC<AppBarProps> = ({
   isMobile,
   onDrawerToggle,
-  userDisplayName,
 }) => {
+  const { mode } = useTheme();
+  const muiTheme = useMuiTheme();
+  
   return (
     <StyledAppBar
       position="fixed"
@@ -51,7 +54,6 @@ export const AppBar: React.FC<AppBarProps> = ({
       <AppBarContent
         isMobile={isMobile}
         onDrawerToggle={onDrawerToggle}
-        userDisplayName={userDisplayName}
       />
     </StyledAppBar>
   );

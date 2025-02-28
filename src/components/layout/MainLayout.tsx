@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { Box, CssBaseline, useMediaQuery, useTheme } from '@mui/material';
+import { Box, CssBaseline, useMediaQuery } from '@mui/material';
+import { useTheme as useMuiTheme } from '@mui/material/styles';
+import { Outlet } from 'react-router-dom';
 import AppBar from './AppBar';
 import Sidebar from './Sidebar';
 import { NAV_ITEMS } from '../../app/routes';
+import { useTheme } from '../../theme/ThemeContext';
 
-interface MainLayoutProps {
-  children: React.ReactNode;
-}
-
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { mode } = useTheme();
+  const muiTheme = useMuiTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
 
   const handleDrawerToggle = () => {
     setSidebarOpen(!sidebarOpen);
@@ -24,7 +24,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <AppBar 
         isMobile={isMobile}
         onDrawerToggle={handleDrawerToggle}
-        userDisplayName="Michael Chen" // Operations Director at TechComponents International
       />
       
       <Sidebar 
@@ -41,11 +40,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           flexGrow: 1,
           p: 3,
           mt: 8, // Height of AppBar
-          backgroundColor: theme.palette.background.default,
+          backgroundColor: muiTheme.palette.background.default,
           minHeight: '100vh',
         }}
       >
-        {children}
+        <Outlet />
       </Box>
     </Box>
   );

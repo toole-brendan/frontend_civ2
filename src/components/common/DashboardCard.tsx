@@ -3,11 +3,12 @@ import { Box, Card, Typography, SxProps, Theme } from '@mui/material';
 
 export interface DashboardCardProps {
   title: string;
-  content: React.ReactNode;
+  content?: React.ReactNode;
+  children?: React.ReactNode;
   sx?: SxProps<Theme>;
 }
 
-export const DashboardCard: React.FC<DashboardCardProps> = ({ title, content, sx }) => {
+export const DashboardCard: React.FC<DashboardCardProps> = ({ title, content, children, sx }) => {
   return (
     <Card 
       sx={{ 
@@ -34,7 +35,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({ title, content, sx
           overflowY: 'auto',
         }}
       >
-        {content}
+        {content || children}
       </Box>
     </Card>
   );

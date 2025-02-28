@@ -1,192 +1,227 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Grid, Box, Paper, styled, useTheme } from '@mui/material';
-import {
-  // New TechComponents Dashboard components
-  KPICard,
-  DashboardHeader,
-  WarehouseInventoryChart,
-  PaymentMethodsChart,
-  ActiveShipmentsTable,
-  SupplierDistributionChart,
-  CriticalStockTable,
-  ActionItemsPanel,
-  BlockchainRecordsTable,
-  QuickActionsPanel
+import React, { useState } from 'react';
+import { 
+  Box, 
+  Container, 
+  FormControl, 
+  Select, 
+  MenuItem, 
+  Button, 
+  TextField, 
+  InputAdornment,
+  useTheme
+} from '@mui/material';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import PageHeader from '@/components/common/PageHeader';
+import { DashboardCard } from '@/components/common/DashboardCard';
+import { useTitle } from '@/hooks/useTitle';
+import { 
+  CriticalStatusCards,
+  FinancialSnapshot,
+  SupplyChainMap,
+  ActionCenterPanel,
+  PerformanceMetricsPanel,
+  ForecastPanel,
+  QuickAccessShortcuts,
+  NotificationSidebar
 } from './components';
-import { techComponentsData } from './mockData';
-import { useTitle } from '../../hooks/useTitle';
-
-// Styled components
-const DashboardContainer = styled(Container)(({ theme }) => ({
-  paddingTop: theme.spacing(4),
-  paddingBottom: theme.spacing(4),
-}));
+import './dashboard.css';
 
 const Dashboard: React.FC = () => {
-  useTitle('Dashboard');
+  useTitle('TechComponents Operations Dashboard');
   const theme = useTheme();
-  const [dashboardData, setDashboardData] = useState(techComponentsData);
+  
+  // Warehouse state
+  const [warehouse, setWarehouse] = useState('all');
 
-  // In a real app, we would fetch the dashboard data from an API
-  useEffect(() => {
-    // Simulate API call
-    const fetchDashboardData = async () => {
-      try {
-        // In a real app, this would be an API call
-        // const response = await api.getDashboardData();
-        // setDashboardData(response.data);
-        
-        // For now, we'll just use the mock data
-        setDashboardData(techComponentsData);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
-
-  // Event handlers
-  const handleViewDetails = (type: string) => {
-    console.log(`View details for ${type} clicked`);
+  // Format current date
+  const today = new Date();
+  const options: Intl.DateTimeFormatOptions = { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
   };
+  const formattedDate = today.toLocaleDateString('en-US', options);
+  
+  // Mock data for last updated
+  const lastUpdated = '2 minutes ago';
 
-  const handleViewAll = (type: string) => {
-    console.log(`View all ${type} clicked`);
-  };
-
-  const handleExportDashboard = () => {
-    console.log('Export dashboard clicked');
-  };
-
-  const handleNotificationsClick = () => {
-    console.log('Notifications clicked');
-  };
-
-  const handleGeneratePurchaseOrders = () => {
-    console.log('Generate purchase orders clicked');
-  };
-
-  const handleOrderItem = (sku: string) => {
-    console.log(`Order item ${sku} clicked`);
-  };
-
-  const handleTransferItem = (sku: string) => {
-    console.log(`Transfer item ${sku} clicked`);
-  };
-
-  const handleCompleteAction = (id: string) => {
-    console.log(`Complete action ${id} clicked`);
-  };
-
-  const handleScanQR = () => {
-    console.log('Scan QR code clicked');
-  };
-
-  const handleCreatePayment = () => {
-    console.log('Create payment clicked');
-  };
-
-  const handleCreateContract = () => {
-    console.log('Create contract clicked');
+  const handleWarehouseChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setWarehouse(event.target.value as string);
   };
 
   return (
-    <DashboardContainer maxWidth="xl">
-      {/* Dashboard Header */}
-      <DashboardHeader
-        userName={dashboardData.user.name}
-        notificationCount={3}
-        onNotificationsClick={handleNotificationsClick}
-        onExportClick={handleExportDashboard}
-      />
-
-      {/* KPI Cards Row */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard data={dashboardData.kpiCards.inventoryValue} />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard data={dashboardData.kpiCards.activeTransfers} />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard data={dashboardData.kpiCards.lowStockAlerts} />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard data={dashboardData.kpiCards.shellTokenSavings} />
-        </Grid>
-      </Grid>
-
-      {/* Charts Row */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={6}>
-          <WarehouseInventoryChart 
-            data={dashboardData.warehouseInventory}
-            onDetailsClick={() => handleViewDetails('warehouseInventory')}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <PaymentMethodsChart 
-            data={dashboardData.paymentMethods}
-            onDetailsClick={() => handleViewDetails('paymentMethods')}
-          />
-        </Grid>
-      </Grid>
-
-      {/* Shipments and Suppliers Row */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={8}>
-          <ActiveShipmentsTable 
-            shipments={dashboardData.activeShipments}
-            onViewAll={() => handleViewAll('shipments')}
-            onViewDetails={(id) => handleViewDetails(`shipment-${id}`)}
-          />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <SupplierDistributionChart 
-            data={dashboardData.supplierDistribution}
-            onViewDetails={() => handleViewDetails('supplierDistribution')}
-          />
-        </Grid>
-      </Grid>
-
-      {/* Critical Items and Actions Row */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={8}>
-          <CriticalStockTable 
-            items={dashboardData.criticalStockItems}
-            onGeneratePurchaseOrders={handleGeneratePurchaseOrders}
-            onOrder={handleOrderItem}
-            onTransfer={handleTransferItem}
-          />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <ActionItemsPanel 
-            items={dashboardData.actionItems}
-            onViewAll={() => handleViewAll('actionItems')}
-            onComplete={handleCompleteAction}
-          />
-        </Grid>
-      </Grid>
-
-      {/* Blockchain Records Row */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12}>
-          <BlockchainRecordsTable records={dashboardData.blockchainRecords} />
-        </Grid>
-      </Grid>
-
-      {/* Quick Actions Row */}
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <QuickActionsPanel 
-            onScanQR={handleScanQR}
-            onCreatePayment={handleCreatePayment}
-            onCreateContract={handleCreateContract}
-          />
-        </Grid>
-      </Grid>
-    </DashboardContainer>
+    <Container maxWidth={false} className="dashboard-container" sx={{ px: { xs: 2, sm: 3, md: 4 }, pb: 4 }}>
+      {/* Header Bar: Full-width with global filters and warehouse selector */}
+      <Box sx={{ mb: 3 }}>
+        <PageHeader 
+          title="TechComponents Operations Dashboard" 
+          subtitle={`Welcome, Michael | ${formattedDate} | Last updated: ${lastUpdated}`}
+          actions={
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 2, 
+              alignItems: 'center',
+              flexWrap: { xs: 'wrap', md: 'nowrap' }
+            }}>
+              <FormControl 
+                variant="outlined" 
+                size="small" 
+                sx={{ minWidth: 180 }}
+              >
+                <Select
+                  value={warehouse}
+                  onChange={handleWarehouseChange as any}
+                  displayEmpty
+                  sx={{ 
+                    borderRadius: 1,
+                    backgroundColor: theme.palette.background.paper,
+                  }}
+                >
+                  <MenuItem value="all">All Locations</MenuItem>
+                  <MenuItem value="austin">Austin</MenuItem>
+                  <MenuItem value="san-jose">San Jose</MenuItem>
+                  <MenuItem value="guadalajara">Guadalajara</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <TextField
+                size="small"
+                placeholder="Date Range"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CalendarTodayIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ 
+                  minWidth: 150,
+                  backgroundColor: theme.palette.background.paper,
+                }}
+              />
+              
+              <Button 
+                variant="outlined" 
+                startIcon={<FileDownloadIcon />}
+                sx={{ 
+                  whiteSpace: 'nowrap',
+                  borderRadius: 1,
+                }}
+              >
+                Export Dashboard
+              </Button>
+            </Box>
+          }
+        />
+      </Box>
+      
+      {/* Main Dashboard Content */}
+      <Box sx={{ 
+        display: 'grid',
+        gridTemplateColumns: { 
+          xs: '1fr', 
+          md: '1fr 1fr', 
+          lg: '1fr 1fr 1fr' 
+        },
+        gap: 3
+      }}>
+        {/* Left Column (spans 1/3 on large screens, full width on small) */}
+        <Box sx={{ 
+          gridColumn: { xs: '1', lg: '1' }
+        }}>
+          {/* Critical Alert Card 1 */}
+          <Box sx={{ mb: 3 }}>
+            <CriticalStatusCards type="urgent" />
+          </Box>
+          
+          {/* Action Center Panel */}
+          <Box sx={{ mb: 3 }}>
+            <DashboardCard title="Priority Action Panel">
+              <ActionCenterPanel />
+            </DashboardCard>
+          </Box>
+        </Box>
+        
+        {/* Middle Column (spans 1/3 on large screens, 1/2 on medium, full width on small) */}
+        <Box sx={{ 
+          gridColumn: { xs: '1', md: '2', lg: '2' }
+        }}>
+          {/* Critical Alert Card 2 */}
+          <Box sx={{ mb: 3 }}>
+            <CriticalStatusCards type="warning" />
+          </Box>
+          
+          {/* Performance Metrics Panel */}
+          <Box sx={{ mb: 3 }}>
+            <DashboardCard title="Performance Metrics Dashboard">
+              <PerformanceMetricsPanel />
+            </DashboardCard>
+          </Box>
+        </Box>
+        
+        {/* Right Column (spans 1/3 on large screens, spans across on medium and small) */}
+        <Box sx={{ 
+          gridColumn: { xs: '1', md: '1 / span 2', lg: '3' }
+        }}>
+          {/* Critical Alert Card 3 */}
+          <Box sx={{ mb: 3 }}>
+            <CriticalStatusCards type="caution" />
+          </Box>
+          
+          {/* Notifications Panel (only visible on large screens in this column) */}
+          <Box sx={{ 
+            mb: 3,
+            display: { xs: 'none', lg: 'block' }
+          }}>
+            <DashboardCard title="Notifications & Activity">
+              <NotificationSidebar />
+            </DashboardCard>
+          </Box>
+        </Box>
+      </Box>
+      
+      {/* Two-column section for Financial Summary and Map (spans full width) */}
+      <Box sx={{ 
+        mt: 3,
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
+        gap: 3
+      }}>
+        {/* Financial Summary (2/3 width) */}
+        <DashboardCard title="Financial Snapshot">
+          <FinancialSnapshot />
+        </DashboardCard>
+        
+        {/* Supply Chain Map (1/3 width) */}
+        <DashboardCard title="Supply Chain Map">
+          <SupplyChainMap />
+        </DashboardCard>
+      </Box>
+      
+      {/* Full-width 30-Day Forecast */}
+      <Box sx={{ mt: 3 }}>
+        <DashboardCard title="30-Day Business Forecast">
+          <ForecastPanel />
+        </DashboardCard>
+      </Box>
+      
+      {/* Quick Actions: Horizontal row of circular icon buttons */}
+      <Box sx={{ mt: 3 }}>
+        <QuickAccessShortcuts />
+      </Box>
+      
+      {/* Notifications Panel (only visible on medium and small screens as full width) */}
+      <Box sx={{ 
+        mt: 3,
+        display: { xs: 'block', lg: 'none' }
+      }}>
+        <DashboardCard title="Notifications & Activity">
+          <NotificationSidebar />
+        </DashboardCard>
+      </Box>
+    </Container>
   );
 };
 

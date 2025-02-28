@@ -8,7 +8,7 @@ npm run build
 echo "📤 Uploading to S3..."
 
 # Upload all files except HTML with long cache duration
-aws s3 sync dist/ s3://www.handreceipt.com/defense/ \
+aws s3 sync dist/ s3://www.handreceipt.com/civilian/ \
   --delete \
   --cache-control "max-age=31536000,public" \
   --exclude "*.html" \
@@ -16,14 +16,14 @@ aws s3 sync dist/ s3://www.handreceipt.com/defense/ \
   --include "*.js"
 
 # Upload all files except HTML and JS with long cache duration
-aws s3 sync dist/ s3://www.handreceipt.com/defense/ \
+aws s3 sync dist/ s3://www.handreceipt.com/civilian/ \
   --delete \
   --cache-control "max-age=31536000,public" \
   --exclude "*.html" \
   --exclude "*.js"
 
 # Upload HTML files with no-cache
-aws s3 sync dist/ s3://www.handreceipt.com/defense/ \
+aws s3 sync dist/ s3://www.handreceipt.com/civilian/ \
   --delete \
   --cache-control "no-cache" \
   --include "*.html"
@@ -32,6 +32,6 @@ aws s3 sync dist/ s3://www.handreceipt.com/defense/ \
 echo "🔄 Invalidating CloudFront cache..."
 aws cloudfront create-invalidation \
   --distribution-id E3T7VX6HV95Q5O \
-  --paths "/defense/*"
+  --paths "/civilian/*"
 
 echo "✅ Deployment complete!" 
