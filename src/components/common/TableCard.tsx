@@ -1,15 +1,27 @@
 import React from 'react';
 import {
-  Card,
-  CardContent,
-  Toolbar,
-  Typography,
-  useTheme,
   SxProps,
   Theme,
-  alpha
+  Typography
 } from '@mui/material';
 import DataTable, { DataTableProps } from './DataTable';
+import {
+  StyledCard,
+  GradientCard,
+  OutlinedCard,
+  AccentCardPrimary,
+  AccentCardSecondary,
+  AccentCardSuccess,
+  AccentCardError,
+  AccentCardWarning,
+  AccentCardInfo,
+  StyledCardToolbar,
+  StyledCardContent,
+  StyledCardFooter,
+  StyledCardTitle,
+  StyledCardSubtitle,
+  CardHeaderContainer
+} from '../ui/styled/cards';
 
 /**
  * Props for the TableCard component
@@ -61,6 +73,7 @@ export interface TableCardProps<T = any> extends Omit<DataTableProps<T>, 'sx'> {
 /**
  * TableCard component combines a DataTable with a standardized card layout,
  * including a toolbar, consistent styling, and optional footer.
+ * This version uses styled components for better maintainability.
  */
 export const TableCard = <T extends Record<string, any>>({
   title,
@@ -73,105 +86,60 @@ export const TableCard = <T extends Record<string, any>>({
   sx,
   ...tableProps
 }: TableCardProps<T>) => {
-  const theme = useTheme();
-  const isLightMode = theme.palette.mode === 'light';
-  
-  // Get card style based on variant
-  const getCardStyle = () => {
-    switch (cardVariant) {
+  // Choose the appropriate card component based on the variant
+  const CardComponent = React.useMemo(() => {
+    switch(cardVariant) {
       case 'gradient':
-        return {
-          background: 
-            `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${
-              theme.palette.mode === 'dark' 
-                ? alpha(theme.palette.primary.main, 0.1)
-                : alpha(theme.palette.primary.main, 0.05)
-            } 100%)`,
-        };
+        return GradientCard;
       case 'outlined':
-        return {
-          border: `1px solid ${theme.palette.divider}`,
-          boxShadow: 'none',
-        };
+        return OutlinedCard;
       case 'accent':
-        return {
-          borderTop: `3px solid ${theme.palette[accentColor].main}`,
-        };
+        switch(accentColor) {
+          case 'secondary':
+            return AccentCardSecondary;
+          case 'success':
+            return AccentCardSuccess;
+          case 'error':
+            return AccentCardError;
+          case 'warning':
+            return AccentCardWarning;
+          case 'info':
+            return AccentCardInfo;
+          default:
+            return AccentCardPrimary;
+        }
       default:
-        return {};
+        return StyledCard;
     }
-  };
-  
-  // Get toolbar background color based on theme
-  const getToolbarBgColor = () => 
-    isLightMode 
-      ? 'rgba(237, 242, 247, 0.5)' 
-      : 'rgba(39, 39, 42, 0.5)';
+  }, [cardVariant, accentColor]);
 
   return (
-    <Card
-      elevation={elevation}
-      sx={{
-        borderRadius: 2,
-        border: isLightMode ? 'none' : `1px solid ${theme.palette.divider}`,
-        overflow: 'hidden',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out',
-        '&:hover': {
-          transform: elevation > 0 ? 'translateY(-4px)' : 'none',
-          boxShadow: elevation > 0 ? 
-            `0 8px 24px ${
-              theme.palette.mode === 'dark' 
-                ? 'rgba(0,0,0,0.4)' 
-                : 'rgba(0,0,0,0.1)'
-            }` : undefined,
-        },
-        ...getCardStyle(),
-        ...sx
-      }}
-    >
-      <Toolbar
-        sx={{
-          px: { sm: 2 },
-          py: 2,
-          bgcolor: getToolbarBgColor(),
-          borderBottom: `1px solid ${theme.palette.divider}`
-        }}
-      >
-        <div style={{ flex: '1 1 100%' }}>
-          <Typography variant="h6" component="h2">
+    <CardComponent elevation={elevation} sx={sx}>
+      <StyledCardToolbar>
+        <CardHeaderContainer>
+          <Typography variant="h6" component="h2" sx={{ fontSize: '1rem', fontWeight: 500 }}>
             {title}
           </Typography>
           {subtitle && (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem', mt: 0.5 }}>
               {subtitle}
             </Typography>
           )}
-        </div>
+        </CardHeaderContainer>
         
         {toolbarActions}
-      </Toolbar>
+      </StyledCardToolbar>
       
-      <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <StyledCardContent>
         <DataTable {...tableProps} sx={{ flex: 1 }} />
-      </CardContent>
+      </StyledCardContent>
       
       {footer && (
-        <div
-          style={{
-            padding: theme.spacing(2),
-            borderTop: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.mode === 'dark'
-              ? alpha(theme.palette.background.paper, 0.6)
-              : alpha(theme.palette.background.paper, 0.8),
-          }}
-        >
+        <StyledCardFooter>
           {footer}
-        </div>
+        </StyledCardFooter>
       )}
-    </Card>
+    </CardComponent>
   );
 };
 

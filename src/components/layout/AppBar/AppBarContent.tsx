@@ -80,6 +80,10 @@ const Search = styled('div')(({ theme }) => ({
     left: 'auto',
     marginLeft: theme.spacing(3),
   },
+  // Ensure search box doesn't affect AppBar background
+  '&::before, &::after': {
+    display: 'none',
+  }
 }));
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
@@ -292,7 +296,11 @@ export const AppBarContent: React.FC<AppBarContentProps> = ({
   };
 
   return (
-    <Toolbar sx={{ position: 'relative' }}>
+    <Toolbar sx={{ 
+      position: 'relative',
+      backgroundColor: mode === 'light' ? '#f8f9fa !important' : '#1a1a1a !important', 
+      background: mode === 'light' ? '#f8f9fa !important' : '#1a1a1a !important',
+    }}>
       {isMobile && (
         <IconButton
           color="inherit"

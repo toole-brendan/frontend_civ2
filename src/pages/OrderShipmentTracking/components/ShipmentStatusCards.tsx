@@ -1,15 +1,11 @@
 import React from 'react';
 import {
   Grid,
-  Card,
-  CardContent,
-  Typography,
   Box,
-  Avatar,
   Chip,
-  alpha,
   useTheme
 } from '@mui/material';
+import KpiStatsCard from '@/components/common/KpiStatsCard';
 
 // Icons
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -48,97 +44,66 @@ const ShipmentStatusCards: React.FC<ShipmentStatusCardsProps> = ({
     <Grid container spacing={3} sx={{ mb: 3 }}>
       {/* Total Value in Transit */}
       <Grid item xs={12} sm={6} md={3}>
-        <Card>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.2), color: 'primary.main', mr: 2 }}>
-                <AttachMoneyIcon />
-              </Avatar>
-              <Typography variant="subtitle1" color="text.secondary">
-                Value in Transit
-              </Typography>
-            </Box>
-            <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-              ${valueInTransit.toLocaleString()}
-            </Typography>
-            <Box component="span" sx={{ display: 'block' }} color="text.secondary" fontSize="body2.fontSize">
-              Across {activeShipmentsCount} active shipments
-            </Box>
-          </CardContent>
-        </Card>
+        <KpiStatsCard
+          icon={<AttachMoneyIcon />}
+          title="Value in Transit"
+          value={`$${valueInTransit.toLocaleString()}`}
+          subtitle={`Across ${activeShipmentsCount} active shipments`}
+          color={theme.palette.primary.main}
+          variant="outlined"
+          elevation={0}
+        />
       </Grid>
 
       {/* Expected Deliveries */}
       <Grid item xs={12} sm={6} md={3}>
-        <Card>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Avatar sx={{ bgcolor: alpha(theme.palette.info.main, 0.2), color: 'info.main', mr: 2 }}>
-                <CalendarTodayIcon />
-              </Avatar>
-              <Typography variant="subtitle1" color="text.secondary">
-                Expected Today
-              </Typography>
-            </Box>
-            <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-              {expectedToday.total} Shipments
-            </Typography>
-            <Box component="span" sx={{ display: 'block' }} color="text.secondary" fontSize="body2.fontSize">
-              {expectedToday.inbound} inbound, {expectedToday.outbound} outbound
-            </Box>
-          </CardContent>
-        </Card>
+        <KpiStatsCard
+          icon={<CalendarTodayIcon />}
+          title="Expected Today"
+          value={`${expectedToday.total} Shipments`}
+          subtitle={`${expectedToday.inbound} inbound, ${expectedToday.outbound} outbound`}
+          color={theme.palette.info.main}
+          variant="outlined"
+          elevation={0}
+        />
       </Grid>
 
       {/* Delayed Shipments */}
       <Grid item xs={12} sm={6} md={3}>
-        <Card>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Avatar sx={{ bgcolor: alpha(theme.palette.error.main, 0.2), color: 'error.main', mr: 2 }}>
-                <WarningIcon />
-              </Avatar>
-              <Typography variant="subtitle1" color="text.secondary">
-                Delayed Shipments
-              </Typography>
-            </Box>
-            <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-              {delayedShipments.count} Shipments
-            </Typography>
-            <Box sx={{ mt: 1 }}>
-              {delayedShipments.critical > 0 && (
+        <KpiStatsCard
+          icon={<WarningIcon />}
+          title="Delayed Shipments"
+          value={`${delayedShipments.count} Shipments`}
+          subtitle={delayedShipments.critical > 0 ? "Requiring immediate attention" : "Currently delayed in transit"}
+          color={theme.palette.error.main}
+          variant="outlined"
+          elevation={0}
+          action={
+            delayedShipments.critical > 0 ? (
+              <Box sx={{ mt: 1 }}>
                 <Chip
                   size="small"
                   color="error"
                   label={`${delayedShipments.critical} Critical`}
                   sx={{ height: 24 }}
                 />
-              )}
-            </Box>
-          </CardContent>
-        </Card>
+              </Box>
+            ) : undefined
+          }
+        />
       </Grid>
 
       {/* Blockchain Verification */}
       <Grid item xs={12} sm={6} md={3}>
-        <Card>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Avatar sx={{ bgcolor: alpha(theme.palette.success.main, 0.2), color: 'success.main', mr: 2 }}>
-                <VerifiedIcon />
-              </Avatar>
-              <Typography variant="subtitle1" color="text.secondary">
-                Blockchain Verified
-              </Typography>
-            </Box>
-            <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-              {verificationStats.percent}% Verified
-            </Typography>
-            <Box component="span" sx={{ display: 'block' }} color="text.secondary" fontSize="body2.fontSize">
-              {verificationStats.confirmations} total confirmations
-            </Box>
-          </CardContent>
-        </Card>
+        <KpiStatsCard
+          icon={<VerifiedIcon />}
+          title="Blockchain Verified"
+          value={`${verificationStats.percent}% Verified`}
+          subtitle={`${verificationStats.confirmations} total confirmations`}
+          color={theme.palette.success.main}
+          variant="outlined"
+          elevation={0}
+        />
       </Grid>
     </Grid>
   );

@@ -6,6 +6,7 @@ import {
   Box,
   Avatar,
   alpha,
+  useTheme
 } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
@@ -81,6 +82,8 @@ export interface KpiStatsCardProps {
 /**
  * KpiStatsCard component displays key performance indicators in a consistent card format
  * with customizable styling, icons, and trend indicators.
+ * 
+ * Updated with more subtle styling (reduced opacity backgrounds, left border accent)
  */
 export const KpiStatsCard: React.FC<KpiStatsCardProps> = ({ 
   icon, 
@@ -95,68 +98,87 @@ export const KpiStatsCard: React.FC<KpiStatsCardProps> = ({
   color,
   elevation = 0,
   variant = 'outlined'
-}) => (
-  <Card 
-    elevation={elevation}
-    variant={variant}
-    sx={{ 
-      height: '100%',
-      bgcolor: color, // Use full color background instead of border
-      color: '#FFFFFF', // White text for better contrast
-      transition: 'all 0.2s ease-in-out',
-      '&:hover': {
-        boxShadow: elevation > 0 ? 4 : undefined,
-        transform: elevation > 0 ? 'translateY(-2px)' : 'none',
+}) => {
+  const theme = useTheme();
+  
+  // Get the actual color value (handles both direct colors and theme palette references)
+  let actualColor = color;
+  if (color.includes('.')) {
+    const [paletteName, variant] = color.split('.');
+    if (paletteName && variant && theme.palette[paletteName as keyof typeof theme.palette]) {
+      const palette = theme.palette[paletteName as keyof typeof theme.palette] as any;
+      if (palette && variant in palette) {
+        actualColor = palette[variant];
       }
-    }}
-  >
-    <CardContent sx={{ p: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-        <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>{title}</Typography>
-        <Avatar 
-          sx={{ 
-            bgcolor: 'rgba(255, 255, 255, 0.2)',
-            color: '#FFFFFF',
-            width: 40,
-            height: 40,
-            borderRadius: '8px'
-          }}
-        >
-          {icon}
-        </Avatar>
-      </Box>
-      
-      <Typography variant="h3" fontWeight="500" color="#FFFFFF" sx={{ my: 1.5 }}>
-        {value}
-      </Typography>
-      
-      <Typography variant="body2" color="rgba(255, 255, 255, 0.7)" sx={{ mb: 1.5 }}>
-        {subtitle}
-      </Typography>
-      
-      {trend && (
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          {trendDirection === 'up' ? (
-            <ArrowUpwardIcon sx={{ color: 'success.main', fontSize: 14, mr: 0.5 }} />
-          ) : (
-            <ArrowDownwardIcon sx={{ color: 'error.main', fontSize: 14, mr: 0.5 }} />
-          )}
-          <Typography 
-            variant="caption" 
-            color={trendDirection === 'up' ? 'rgba(152, 255, 152, 0.9)' : 'rgba(255, 152, 152, 0.9)'}
+    }
+  }
+  
+  return (
+    <Card 
+      elevation={elevation}
+      variant={variant}
+      sx={{ 
+        height: '100%',
+        backgroundColor: theme.palette.mode === 'dark'
+          ? alpha(actualColor, 0.08)
+          : alpha(actualColor, 0.04),
+        border: `1px solid ${alpha(actualColor, 0.2)}`,
+        borderLeft: `3px solid ${alpha(actualColor, 0.7)}`,
+        transition: 'all 0.2s ease-in-out',
+        '&:hover': {
+          transform: 'translateY(-3px)',
+          boxShadow: `0 4px 12px ${alpha(actualColor, 0.15)}`,
+        }
+      }}
+    >
+      <CardContent sx={{ p: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+          <Typography variant="subtitle1" color="text.primary">{title}</Typography>
+          <Avatar 
+            sx={{ 
+              bgcolor: alpha(actualColor, 0.15),
+              color: actualColor,
+              width: 40,
+              height: 40,
+              borderRadius: theme.shape.borderRadius
+            }}
           >
-            {trendValue}
-          </Typography>
+            {icon}
+          </Avatar>
         </Box>
-      )}
-      
-      {action && (
-        <Box sx={{ mt: 1 }}>
-          {action}
-        </Box>
-      )}
-    </CardContent>
-  </Card>
-);
+        
+        <Typography variant="h3" fontWeight="500" color="text.primary" sx={{ my: 1.5 }}>
+          {value}
+        </Typography>
+        
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+          {subtitle}
+        </Typography>
+        
+        {trend && (
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+            {trendDirection === 'up' ? (
+              <ArrowUpwardIcon sx={{ color: 'success.main', fontSize: 14, mr: 0.5 }} />
+            ) : (
+              <ArrowDownwardIcon sx={{ color: 'error.main', fontSize: 14, mr: 0.5 }} />
+            )}
+            <Typography 
+              variant="caption" 
+              color={trendDirection === 'up' ? 'success.main' : 'error.main'}
+            >
+              {trendValue}
+            </Typography>
+          </Box>
+        )}
+        
+        {action && (
+          <Box sx={{ mt: 1 }}>
+            {action}
+          </Box>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 export default KpiStatsCard;

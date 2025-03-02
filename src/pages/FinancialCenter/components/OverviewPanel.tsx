@@ -6,11 +6,13 @@ import {
   Card, 
   CardContent, 
   Typography, 
-  Avatar, 
   Chip, 
   Divider, 
-  Button
+  Button,
+  Avatar,
+  useTheme
 } from '@mui/material';
+import KpiStatsCard from '@/components/common/KpiStatsCard';
 
 // Icons
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -51,188 +53,64 @@ const OverviewPanel: React.FC<OverviewPanelProps> = ({ cashFlowData, paymentMeth
       <Grid container spacing={3} sx={{ mb: 3 }}>
         {/* Cash on Hand */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', position: 'relative', overflow: 'visible' }}>
-            <Box 
-              sx={{ 
-                position: 'absolute', 
-                top: -16, 
-                left: 24, 
-                width: 56, 
-                height: 56, 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                backgroundColor: 'background.paper',
-                border: '4px solid',
-                borderColor: 'background.default'
-              }}
-            >
-              <Avatar 
-                sx={{ 
-                  bgcolor: 'info.main', 
-                  color: 'info.contrastText',
-                  width: 48,
-                  height: 48
-                }}
-              >
-                <AttachMoneyIcon />
-              </Avatar>
-            </Box>
-            <CardContent sx={{ pt: 4, pb: 3, px: 3 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                Cash on Hand
-              </Typography>
-              <Typography variant="h4" fontWeight="600" sx={{ mb: 1 }}>
-                $1,250,600
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <ArrowUpwardIcon sx={{ color: 'success.main', fontSize: 16, mr: 0.5 }} />
-                <Typography variant="caption" color="success.main">
-                  +5.2% this month
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
+          <KpiStatsCard
+            icon={<AttachMoneyIcon />}
+            title="Cash on Hand"
+            value="$1,250,600"
+            subtitle="Available balance"
+            trend={true}
+            trendDirection="up"
+            trendValue="+5.2% this month"
+            color="info.main"
+            variant="outlined"
+            elevation={0}
+          />
         </Grid>
         
         {/* Accounts Receivable */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', position: 'relative', overflow: 'visible' }}>
-            <Box 
-              sx={{ 
-                position: 'absolute', 
-                top: -16, 
-                left: 24, 
-                width: 56, 
-                height: 56, 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                backgroundColor: 'background.paper',
-                border: '4px solid',
-                borderColor: 'background.default'
-              }}
-            >
-              <Avatar 
-                sx={{ 
-                  bgcolor: 'warning.main', 
-                  color: 'warning.contrastText',
-                  width: 48,
-                  height: 48
-                }}
-              >
-                <EventNoteIcon />
-              </Avatar>
-            </Box>
-            <CardContent sx={{ pt: 4, pb: 3, px: 3 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                Accounts Receivable
-              </Typography>
-              <Typography variant="h4" fontWeight="600" sx={{ mb: 1 }}>
-                $685,200
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography variant="caption" color="text.secondary">
-                  12 open invoices • 38 days average
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
+          <KpiStatsCard
+            icon={<EventNoteIcon />}
+            title="Accounts Receivable"
+            value="$685,200"
+            subtitle="12 open invoices • 38 days average"
+            color="warning.main"
+            variant="outlined"
+            elevation={0}
+          />
         </Grid>
         
         {/* Accounts Payable */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', position: 'relative', overflow: 'visible' }}>
-            <Box 
-              sx={{ 
-                position: 'absolute', 
-                top: -16, 
-                left: 24, 
-                width: 56, 
-                height: 56, 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                backgroundColor: 'background.paper',
-                border: '4px solid',
-                borderColor: 'background.default'
-              }}
-            >
-              <Avatar 
-                sx={{ 
-                  bgcolor: 'error.main', 
-                  color: 'error.contrastText',
-                  width: 48,
-                  height: 48
-                }}
-              >
-                <MoneyOffIcon />
-              </Avatar>
-            </Box>
-            <CardContent sx={{ pt: 4, pb: 3, px: 3 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                Accounts Payable
+          <KpiStatsCard
+            icon={<MoneyOffIcon />}
+            title="Accounts Payable"
+            value="$197,550"
+            subtitle={
+              <Typography variant="caption" color="error.main">
+                <Box component="span" sx={{ fontWeight: 'bold' }}>$78,500</Box> due tomorrow
               </Typography>
-              <Typography variant="h4" fontWeight="600" sx={{ mb: 1 }}>
-                $197,550
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography variant="caption" color="error.main">
-                  <Box component="span" sx={{ fontWeight: 'bold' }}>$78,500</Box> due tomorrow
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
+            }
+            color="error.main"
+            variant="outlined"
+            elevation={0}
+          />
         </Grid>
         
         {/* Shell Token Savings */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', position: 'relative', overflow: 'visible' }}>
-            <Box 
-              sx={{ 
-                position: 'absolute', 
-                top: -16, 
-                left: 24, 
-                width: 56, 
-                height: 56, 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                backgroundColor: 'background.paper',
-                border: '4px solid',
-                borderColor: 'background.default'
-              }}
-            >
-              <Avatar 
-                sx={{ 
-                  bgcolor: 'success.main', 
-                  color: 'success.contrastText',
-                  width: 48,
-                  height: 48
-                }}
-              >
-                <SavingsIcon />
-              </Avatar>
-            </Box>
-            <CardContent sx={{ pt: 4, pb: 3, px: 3 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                Shell Token Savings
-              </Typography>
-              <Typography variant="h4" fontWeight="600" sx={{ mb: 1 }}>
-                $24,850
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <ArrowUpwardIcon sx={{ color: 'success.main', fontSize: 16, mr: 0.5 }} />
-                <Typography variant="caption" color="success.main">
-                  18.2% vs. traditional payments
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
+          <KpiStatsCard
+            icon={<SavingsIcon />}
+            title="Shell Token Savings"
+            value="$24,850"
+            subtitle="Using blockchain payments"
+            trend={true}
+            trendDirection="up"
+            trendValue="18.2% vs. traditional payments"
+            color="success.main"
+            variant="outlined"
+            elevation={0}
+          />
         </Grid>
       </Grid>
       

@@ -9,6 +9,7 @@ import {
   Button,
   Stack
 } from '@mui/material';
+import { PageHeader } from '@/components/common';
 
 // Icons
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
@@ -145,37 +146,36 @@ const OrderShipmentTracking: React.FC = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', p: 3 }}>
-      <Container maxWidth="xl">
+    <Box sx={{ 
+      bgcolor: 'background.default', 
+      minHeight: '100vh', 
+      pb: 8
+    }}>
+      <Container maxWidth="xl" sx={{ pt: 3 }}>
         {/* Page Header */}
-        <Box sx={{ mb: 3 }}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={8}>
-              <Typography variant="h5" sx={{ mb: 0.5 }}>
-                Order & Shipment Tracking
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Manage and monitor all shipments across your supply chain with blockchain verification
-              </Typography>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Stack direction="row" spacing={2} justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<QrCodeScannerIcon />}
-                >
-                  Scan Shipment
-                </Button>
-                <Button
-                  variant="contained" 
-                  startIcon={<AddIcon />}
-                >
-                  Create Shipment
-                </Button>
-              </Stack>
-            </Grid>
-          </Grid>
-        </Box>
+        <PageHeader
+          title="Order & Shipment Tracking"
+          actions={
+            <Stack direction="row" spacing={2}>
+              <Button
+                variant="outlined"
+                startIcon={<QrCodeScannerIcon />}
+              >
+                Scan Shipment
+              </Button>
+              <Button
+                variant="contained" 
+                startIcon={<AddIcon />}
+              >
+                Create Shipment
+              </Button>
+            </Stack>
+          }
+        >
+          <Typography variant="body2" color="text.secondary">
+            Manage and monitor all shipments across your supply chain with blockchain verification
+          </Typography>
+        </PageHeader>
 
         {/* Summary Cards */}
         <ShipmentStatusCards

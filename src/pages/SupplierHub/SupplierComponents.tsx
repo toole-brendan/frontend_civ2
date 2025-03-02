@@ -20,8 +20,10 @@ import {
   Paper,
   Rating,
   CircularProgress,
-  alpha
+  alpha,
+  useTheme as useMuiTheme
 } from '@mui/material';
+import KpiStatsCard from '@/components/common/KpiStatsCard';
 
 // Icons
 import BusinessIcon from '@mui/icons-material/Business';
@@ -29,6 +31,7 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import WarningIcon from '@mui/icons-material/Warning';
 import SavingsIcon from '@mui/icons-material/Savings';
 import DescriptionIcon from '@mui/icons-material/Description';
+import InsertChartIcon from '@mui/icons-material/InsertChart';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VerifiedIcon from '@mui/icons-material/Verified';
@@ -226,123 +229,60 @@ interface PerformanceScoreCardProps {
 
 // Performance score card component
 export const PerformanceScoreCard: React.FC<PerformanceScoreCardProps> = ({ supplier }) => {
+  // Importing this here so we can get access to the theme
+  const theme = useMuiTheme();
+  
+  // Determine trend direction and color based on supplier performance trend (for demo, assuming it's up)
+  const trendDirection = 'up';
+  
+  // Determine color based on performance score
+  const scoreColor = 
+    supplier.performance >= 90 ? theme.palette.success.main :
+    supplier.performance >= 80 ? theme.palette.primary.main :
+    supplier.performance >= 70 ? theme.palette.warning.main : 
+    theme.palette.error.main;
+
   return (
-    <Card>
-      <CardContent>
-        <Typography variant="subtitle1" gutterBottom>
-          Overall Performance
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 2 }}>
-          <Box
-            sx={{
-              position: 'relative',
-              display: 'inline-flex',
-            }}
-          >
-            <CircularProgress
-              variant="determinate"
-              value={supplier.performance}
-              size={120}
-              thickness={5}
-              sx={{ 
-                color: supplier.performance >= 90 ? 'success.main' :
-                       supplier.performance >= 80 ? 'primary.main' :
-                       supplier.performance >= 70 ? 'warning.main' : 'error.main'
-              }}
-            />
-            <Box
-              sx={{
-                top: 0,
-                left: 0,
-                bottom: 0,
-                right: 0,
-                position: 'absolute',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Typography variant="h4" fontWeight="bold">
-                {supplier.performance}
+    <KpiStatsCard
+      icon={<InsertChartIcon />}
+      title="Overall Performance"
+      value={`${supplier.performance}/100`}
+      subtitle={
+        <Grid container spacing={1}>
+          <Grid item xs={6}>
+            <Box sx={{ mb: 1 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Quality: {supplier.qualityScore}
               </Typography>
             </Box>
-          </Box>
-        </Box>
-        
-        <Box sx={{ mt: 2 }}>
-          <Grid container spacing={1}>
-            <Grid item xs={6}>
-              <Box sx={{ mb: 1.5 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Quality
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={supplier.qualityScore} 
-                    sx={{ 
-                      height: 8, 
-                      borderRadius: 1, 
-                      flexGrow: 1,
-                      mr: 1
-                    }} 
-                  />
-                  <Typography variant="body2" fontWeight="medium">
-                    {supplier.qualityScore}
-                  </Typography>
-                </Box>
-              </Box>
-              
-              <Box>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Response Time
-                </Typography>
-                <Typography variant="body2">
-                  {supplier.responseTime}
-                </Typography>
-              </Box>
-            </Grid>
-            
-            <Grid item xs={6}>
-              <Box sx={{ mb: 1.5 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  On-Time Delivery
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={supplier.onTimeDelivery} 
-                    sx={{ 
-                      height: 8, 
-                      borderRadius: 1, 
-                      flexGrow: 1,
-                      mr: 1
-                    }} 
-                  />
-                  <Typography variant="body2" fontWeight="medium">
-                    {supplier.onTimeDelivery}
-                  </Typography>
-                </Box>
-              </Box>
-              
-              <Box>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Risk Assessment
-                </Typography>
-                <Chip 
-                  size="small" 
-                  label={supplier.riskScore} 
-                  color={
-                    supplier.riskScore === 'Low' ? 'success' : 
-                    supplier.riskScore === 'Medium' ? 'warning' : 'error'
-                  }
-                />
-              </Box>
-            </Grid>
+            <Box>
+              <Typography variant="body2" color="text.secondary">
+                Response: {supplier.responseTime}
+              </Typography>
+            </Box>
           </Grid>
-        </Box>
-      </CardContent>
-    </Card>
+          
+          <Grid item xs={6}>
+            <Box sx={{ mb: 1 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Delivery: {supplier.onTimeDelivery}%
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">
+                Risk: {supplier.riskScore}
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      }
+      trend={true}
+      trendDirection={trendDirection}
+      trendValue="2.5% vs. last quarter"
+      color={scoreColor}
+      variant="outlined"
+      elevation={0}
+    />
   );
 };
 

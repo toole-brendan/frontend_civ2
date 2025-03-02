@@ -28,10 +28,11 @@ import {
   TableBody,
   TextField,
   InputAdornment,
-  Chip,
   useTheme,
   SelectChangeEvent
 } from '@mui/material';
+import { TableCard, StatusChip } from '@/components/common';
+import KpiStatsCard from '@/components/common/KpiStatsCard';
 
 // Icons
 import TokenIcon from '@mui/icons-material/Token';
@@ -159,10 +160,13 @@ const BlockchainTab: React.FC<BlockchainTabProps> = ({ onShowSnackbar }) => {
             Configure blockchain settings for inventory verification
           </Typography>
           
-          <Card sx={{ mb: 4 }}>
+          <Card variant="outlined" sx={{ mb: 4 }}>
             <CardContent>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Connected Networks
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Configure blockchain networks for verification
               </Typography>
               <List>
                 {blockchainSettings.networks.map((network) => (
@@ -186,10 +190,10 @@ const BlockchainTab: React.FC<BlockchainTabProps> = ({ onShowSnackbar }) => {
                         label="" 
                       />
                       {network.default && (
-                        <Chip 
+                        <StatusChip 
                           label="Default" 
-                          size="small" 
-                          color="primary" 
+                          status="success"
+                          size="small"
                           sx={{ ml: 1 }} 
                         />
                       )}
@@ -209,10 +213,13 @@ const BlockchainTab: React.FC<BlockchainTabProps> = ({ onShowSnackbar }) => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card variant="outlined">
             <CardContent>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Verification Settings
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Configure blockchain verification requirements
               </Typography>
               <FormGroup>
                 <FormControlLabel 
@@ -284,21 +291,27 @@ const BlockchainTab: React.FC<BlockchainTabProps> = ({ onShowSnackbar }) => {
             Configure how transactions are processed on the blockchain
           </Typography>
           
-          <Card sx={{ mb: 4 }}>
+          <Card variant="outlined" sx={{ mb: 4 }}>
             <CardContent>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Transaction Priority
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Configure transaction gas fees and priority
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
                 <Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body2">Gas Fee Priority</Typography>
-                    <Chip 
+                    <StatusChip 
                       label={
                         blockchainSettings.gasPriority === 1 ? 'Low' : 
                         blockchainSettings.gasPriority === 2 ? 'Standard' : 'High'
                       } 
-                      color="primary" 
+                      status={
+                        blockchainSettings.gasPriority === 1 ? 'info' : 
+                        blockchainSettings.gasPriority === 2 ? 'success' : 'warning'
+                      }
                       size="small" 
                     />
                   </Box>
@@ -340,10 +353,13 @@ const BlockchainTab: React.FC<BlockchainTabProps> = ({ onShowSnackbar }) => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card variant="outlined">
             <CardContent>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Smart Contract Configuration
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Optimize contract execution settings
               </Typography>
               <Box sx={{ mt: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -362,47 +378,30 @@ const BlockchainTab: React.FC<BlockchainTabProps> = ({ onShowSnackbar }) => {
                 </FormGroup>
                 
                 <Box sx={{ mt: 3 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Active Smart Contracts
-                  </Typography>
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Contract Name</TableCell>
-                          <TableCell>Network</TableCell>
-                          <TableCell>Address</TableCell>
-                          <TableCell align="right">Status</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell>HandReceiptRegistry</TableCell>
-                          <TableCell>Ethereum Mainnet</TableCell>
-                          <TableCell>0x7a3B...c5E8</TableCell>
-                          <TableCell align="right">
-                            <Chip label="Active" size="small" color="success" />
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>VerifyToken</TableCell>
-                          <TableCell>Polygon</TableCell>
-                          <TableCell>0x92F1...d73A</TableCell>
-                          <TableCell align="right">
-                            <Chip label="Active" size="small" color="success" />
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>InventoryOracle</TableCell>
-                          <TableCell>Ethereum Mainnet</TableCell>
-                          <TableCell>0x41C0...f29B</TableCell>
-                          <TableCell align="right">
-                            <Chip label="Active" size="small" color="success" />
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                  <TableCard
+                    title="Active Smart Contracts"
+                    data={[
+                      { id: 1, contract: 'HandReceiptRegistry', network: 'Ethereum Mainnet', address: '0x7a3B...c5E8', status: 'Active' },
+                      { id: 2, contract: 'VerifyToken', network: 'Polygon', address: '0x92F1...d73A', status: 'Active' },
+                      { id: 3, contract: 'InventoryOracle', network: 'Ethereum Mainnet', address: '0x41C0...f29B', status: 'Active' }
+                    ]}
+                    columns={[
+                      { id: 'contract', label: 'Contract Name', field: 'contract', minWidth: 150 },
+                      { id: 'network', label: 'Network', field: 'network', minWidth: 120 },
+                      { id: 'address', label: 'Address', field: 'address', minWidth: 120 },
+                      { 
+                        id: 'status', 
+                        label: 'Status', 
+                        minWidth: 100,
+                        align: 'right',
+                        renderCell: (row) => (
+                          <StatusChip label={row.status} status="success" size="small" />
+                        )
+                      }
+                    ]}
+                    elevation={0}
+                    cardVariant="outlined"
+                  />
                 </Box>
               </Box>
             </CardContent>

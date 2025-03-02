@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  ThemeProvider, 
-  CssBaseline, 
   Box, 
   Grid, 
   Typography, 
@@ -33,8 +31,11 @@ import {
   SelectChangeEvent,
   List,
   ListItem,
-  LinearProgress
+  LinearProgress,
+  useTheme
 } from '@mui/material';
+import { PageHeader } from '@/components/common';
+import KpiStatsCard from '@/components/common/KpiStatsCard';
 
 // Import recharts components
 import { 
@@ -55,7 +56,6 @@ import {
 
 // Import components and data
 import { 
-  darkTheme, 
   suppliers, 
   performanceData, 
   leadTimeData, 
@@ -103,6 +103,7 @@ import SecurityIcon from '@mui/icons-material/Security';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
 const SupplierHub: React.FC = () => {
+  const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [selectedSupplier, setSelectedSupplier] = useState(suppliers[0]);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -128,94 +129,91 @@ const SupplierHub: React.FC = () => {
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
-      <CssBaseline />
-      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
-        {/* Main Content */}
-        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-          {/* Header Section */}
-          <Box sx={{ mb: 4 }}>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={8}>
-                <Typography variant="h4" fontWeight="500">
-                  Supplier Hub
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Manage your supplier relationships, track performance, and optimize your supply chain
-                </Typography>
-                
-                <FormControl variant="outlined" sx={{ minWidth: 300 }}>
-                  <InputLabel id="supplier-select-label">Active Supplier</InputLabel>
-                  <Select
-                    labelId="supplier-select-label"
-                    id="supplier-select"
-                    value={selectedSupplier.id}
-                    onChange={handleSupplierChange}
-                    label="Active Supplier"
-                  >
-                    {suppliers.map((supplier) => (
-                      <MenuItem key={supplier.id} value={supplier.id}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Avatar sx={{ mr: 1, width: 24, height: 24, fontSize: '0.75rem' }}>
-                            {supplier.logo}
-                          </Avatar>
-                          {supplier.name}
-                          {supplier.verificationStatus === 'Verified' && (
-                            <VerifiedIcon color="primary" fontSize="small" sx={{ ml: 1 }} />
-                          )}
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, gap: 1 }}>
-                <Button variant="outlined" startIcon={<MessageIcon />}>
-                  Contact
-                </Button>
-                <Button variant="outlined" startIcon={<AssessmentIcon />}>
-                  Reports
-                </Button>
-                <Button variant="contained" color="primary" startIcon={<AddIcon />}>
-                  New Order
-                </Button>
-                <IconButton size="small" onClick={handleMenuOpen}>
-                  <MoreVertIcon />
-                </IconButton>
-                
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl)}
-                  onClose={handleMenuClose}
-                >
-                  <MenuItem onClick={handleMenuClose}>
-                    <ListItemIcon>
-                      <AddIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>Add New Supplier</ListItemText>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
+      {/* Main Content */}
+      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        {/* Header Section */}
+        <PageHeader
+          title="Supplier Hub"
+          actions={
+            <Stack direction="row" spacing={1}>
+              <Button variant="outlined" startIcon={<MessageIcon />}>
+                Contact
+              </Button>
+              <Button variant="outlined" startIcon={<AssessmentIcon />}>
+                Reports
+              </Button>
+              <Button variant="contained" color="primary" startIcon={<AddIcon />}>
+                New Order
+              </Button>
+              <IconButton size="small" onClick={handleMenuOpen}>
+                <MoreVertIcon />
+              </IconButton>
+
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+              >
+                <MenuItem onClick={handleMenuClose}>
+                  <ListItemIcon>
+                    <AddIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Add New Supplier</ListItemText>
+                </MenuItem>
+                <MenuItem onClick={handleMenuClose}>
+                  <ListItemIcon>
+                    <DescriptionIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Create Contract</ListItemText>
+                </MenuItem>
+                <MenuItem onClick={handleMenuClose}>
+                  <ListItemIcon>
+                    <PaymentIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Process Payment</ListItemText>
+                </MenuItem>
+                <MenuItem onClick={handleMenuClose}>
+                  <ListItemIcon>
+                    <SecurityIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Verification Settings</ListItemText>
+                </MenuItem>
+              </Menu>
+            </Stack>
+          }
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column', mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Manage your supplier relationships, track performance, and optimize your supply chain
+            </Typography>
+            
+            <FormControl variant="outlined" sx={{ minWidth: 300, mt: 2 }}>
+              <InputLabel id="supplier-select-label">Active Supplier</InputLabel>
+              <Select
+                labelId="supplier-select-label"
+                id="supplier-select"
+                value={selectedSupplier.id}
+                onChange={handleSupplierChange}
+                label="Active Supplier"
+              >
+                {suppliers.map((supplier) => (
+                  <MenuItem key={supplier.id} value={supplier.id}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Avatar sx={{ mr: 1, width: 24, height: 24, fontSize: '0.75rem' }}>
+                        {supplier.logo}
+                      </Avatar>
+                      {supplier.name}
+                      {supplier.verificationStatus === 'Verified' && (
+                        <VerifiedIcon color="primary" fontSize="small" sx={{ ml: 1 }} />
+                      )}
+                    </Box>
                   </MenuItem>
-                  <MenuItem onClick={handleMenuClose}>
-                    <ListItemIcon>
-                      <DescriptionIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>Create Contract</ListItemText>
-                  </MenuItem>
-                  <MenuItem onClick={handleMenuClose}>
-                    <ListItemIcon>
-                      <PaymentIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>Process Payment</ListItemText>
-                  </MenuItem>
-                  <MenuItem onClick={handleMenuClose}>
-                    <ListItemIcon>
-                      <SecurityIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>Verification Settings</ListItemText>
-                  </MenuItem>
-                </Menu>
-              </Grid>
-            </Grid>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
+        </PageHeader>
           
           {/* Supplier Profile Card */}
           <SupplierProfileCard supplier={selectedSupplier} />
@@ -584,7 +582,6 @@ const SupplierHub: React.FC = () => {
           </TabPanel>
         </Box>
       </Box>
-    </ThemeProvider>
   );
 };
 

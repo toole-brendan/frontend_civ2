@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter, RouterProvider, RouteObject, Outlet } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, RouteObject, Outlet, Navigate } from 'react-router-dom';
 import {
   Dashboard as DashboardIcon,
   Inventory as InventoryIcon,
@@ -32,7 +32,7 @@ const Settings = React.lazy(() => import('../pages/Settings'));
 
 // Routes constants
 export const ROUTES = {
-  DASHBOARD: '/',
+  DASHBOARD: '/dashboard',
   INVENTORY: '/inventory',
   ORDERS_SHIPMENTS: '/orders-shipments',
   SUPPLIERS: '/suppliers',
@@ -82,6 +82,10 @@ const routes: RouteObject[] = [
     children: [
       {
         index: true,
+        element: <Navigate to={ROUTES.DASHBOARD} replace />,
+      },
+      {
+        path: ROUTES.DASHBOARD,
         element: (
           <React.Suspense fallback={<div>Loading...</div>}>
             <Dashboard />

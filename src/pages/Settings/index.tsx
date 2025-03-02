@@ -71,62 +71,68 @@ const Settings: React.FC = () => {
   };
   
   return (
-    <Container maxWidth={false} sx={{ px: { xs: 2, sm: 3, md: 4 }, pb: 4 }}>
-      <PageHeader 
-        title="Settings" 
-        subtitle="Configure application preferences and user settings"
-      />
-      
-      <Paper sx={{ mb: 4, p: 0, overflow: 'hidden' }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs 
-            value={activeTab} 
-            onChange={handleTabChange} 
-            variant="scrollable" 
-            scrollButtons="auto" 
-            textColor="primary" 
-            indicatorColor="primary"
-            sx={{ px: 2 }}
-          >
-            <Tab icon={<PersonIcon />} label="Account" iconPosition="start" />
-            <Tab icon={<SecurityIcon />} label="Security" iconPosition="start" />
-            <Tab icon={<NotificationsIcon />} label="Notifications" iconPosition="start" />
-            <Tab icon={<WarehouseIcon />} label="Warehouses" iconPosition="start" />
-            <Tab icon={<IntegrationInstructionsIcon />} label="Integrations" iconPosition="start" />
-            <Tab icon={<VerifiedIcon />} label="Blockchain" iconPosition="start" />
-            <Tab icon={<SettingsIcon />} label="System" iconPosition="start" />
-          </Tabs>
-        </Box>
+    <Box sx={{ 
+      bgcolor: 'background.default', 
+      minHeight: '100vh', 
+      pb: 8
+    }}>
+      <Container maxWidth="xl" sx={{ pt: 3 }}>
+        <PageHeader 
+          title="Settings" 
+          subtitle="Configure application preferences and user settings"
+        />
         
-        {/* Tab Panels */}
-        <Box>
-          {activeTab === 0 && <AccountTab onShowSnackbar={handleShowSnackbar} />}
-          {activeTab === 1 && <SecurityTab onShowSnackbar={handleShowSnackbar} />}
-          {activeTab === 2 && <NotificationsTab onShowSnackbar={handleShowSnackbar} />}
-          {activeTab === 3 && <WarehousesTab onShowSnackbar={handleShowSnackbar} />}
-          {activeTab === 4 && <IntegrationsTab onShowSnackbar={handleShowSnackbar} />}
-          {activeTab === 5 && <BlockchainTab onShowSnackbar={handleShowSnackbar} />}
-          {activeTab === 6 && <SystemTab onShowSnackbar={handleShowSnackbar} />}
-        </Box>
-      </Paper>
-      
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity} 
-          sx={{ width: '100%' }}
-          variant="filled"
+        <Paper sx={{ mb: 4, p: 0, overflow: 'hidden' }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs 
+              value={activeTab} 
+              onChange={handleTabChange} 
+              variant="scrollable" 
+              scrollButtons="auto" 
+              textColor="primary" 
+              indicatorColor="primary"
+              sx={{ px: 2 }}
+            >
+              <Tab icon={<PersonIcon />} label="Account" iconPosition="start" />
+              <Tab icon={<SecurityIcon />} label="Security" iconPosition="start" />
+              <Tab icon={<NotificationsIcon />} label="Notifications" iconPosition="start" />
+              <Tab icon={<WarehouseIcon />} label="Warehouses" iconPosition="start" />
+              <Tab icon={<IntegrationInstructionsIcon />} label="Integrations" iconPosition="start" />
+              <Tab icon={<VerifiedIcon />} label="Blockchain" iconPosition="start" />
+              <Tab icon={<SettingsIcon />} label="System" iconPosition="start" />
+            </Tabs>
+          </Box>
+          
+          {/* Tab Panels */}
+          <Box>
+            {activeTab === 0 && <AccountTab onShowSnackbar={handleShowSnackbar} />}
+            {activeTab === 1 && <SecurityTab onShowSnackbar={handleShowSnackbar} />}
+            {activeTab === 2 && <NotificationsTab onShowSnackbar={handleShowSnackbar} />}
+            {activeTab === 3 && <WarehousesTab onShowSnackbar={handleShowSnackbar} />}
+            {activeTab === 4 && <IntegrationsTab onShowSnackbar={handleShowSnackbar} />}
+            {activeTab === 5 && <BlockchainTab onShowSnackbar={handleShowSnackbar} />}
+            {activeTab === 6 && <SystemTab onShowSnackbar={handleShowSnackbar} />}
+          </Box>
+        </Paper>
+        
+        {/* Snackbar for notifications */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Container>
+          <Alert 
+            onClose={handleCloseSnackbar} 
+            severity={snackbar.severity} 
+            sx={{ width: '100%' }}
+            variant="filled"
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Container>
+    </Box>
   );
 };
 

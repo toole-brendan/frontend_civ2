@@ -9,6 +9,8 @@ import {
   useTheme
 } from '@mui/material';
 import { Grid } from '@/components/common/Grid';
+import KpiStatsCard from '@/components/common/KpiStatsCard';
+import PageTitle from '@/components/common/PageTitle';
 
 // Icons
 import InventoryIcon from '@mui/icons-material/Inventory';
@@ -21,7 +23,6 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 
 // Import dashboard components
 import {
-  KpiStatsCard,
   InventoryChartPanel,
   PaymentChartPanel,
   ShipmentsTable,
@@ -54,6 +55,17 @@ const Dashboard: React.FC = () => {
             alignItems: 'flex-end' 
           }}>
             <Box>
+              <PageTitle 
+                variant="h4" 
+                component="h1" 
+                gutterBottom
+                sx={{ 
+                  color: theme.palette.primary.main,
+                  fontSize: { xs: '1.5rem', md: '1.75rem' }
+                }}
+              >
+                Dashboard
+              </PageTitle>
               <Typography variant="h4" fontWeight="500">
                 Welcome back, Michael
               </Typography>
@@ -100,7 +112,10 @@ const Dashboard: React.FC = () => {
                 subtitle="Current total value of all inventory items"
                 trend={true}
                 trendValue="+3.2% vs. previous month"
+                trendDirection="up"
                 color={theme.palette.primary.main}
+                variant="outlined"
+                elevation={0}
                 action={
                   <Button 
                     variant="text" 
@@ -133,6 +148,8 @@ const Dashboard: React.FC = () => {
                   </Box>
                 }
                 color={theme.palette.info.main}
+                variant="outlined"
+                elevation={0}
                 action={
                   <Button 
                     variant="text" 
@@ -154,6 +171,8 @@ const Dashboard: React.FC = () => {
                 value="3"
                 subtitle="Items below reorder point that need attention"
                 color={theme.palette.warning.main}
+                variant="outlined"
+                elevation={0}
                 action={
                   <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
                     <Chip 
@@ -184,7 +203,10 @@ const Dashboard: React.FC = () => {
                 subtitle="Total savings from using Shell tokens"
                 trend={true}
                 trendValue="18.2% vs. traditional payments"
+                trendDirection="up"
                 color={theme.palette.success.main}
+                variant="outlined"
+                elevation={0}
                 action={
                   <Button 
                     variant="text" 
