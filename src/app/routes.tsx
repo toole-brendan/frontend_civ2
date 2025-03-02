@@ -20,7 +20,7 @@ export const icons = {
 } as const;
 
 // Layouts
-import MainLayout from '../components/layout/MainLayout';
+import AppContainer from '../components/layout/AppContainer';
 
 // Lazy load new consolidated pages
 const Dashboard = React.lazy(() => import('../pages/Dashboard'));
@@ -43,7 +43,7 @@ export const ROUTES = {
 // Navigation items for sidebar
 export const NAV_ITEMS = [
   {
-    title: 'Command Center',
+    title: 'Dashboard',
     path: ROUTES.DASHBOARD,
     icon: icons.DashboardIcon,
   },
@@ -78,7 +78,7 @@ export const NAV_ITEMS = [
 const routes: RouteObject[] = [
   {
     path: '/',
-    element: <MainLayout />,
+    element: <AppContainer />,
     children: [
       {
         index: true,

@@ -6,8 +6,8 @@ import { useTheme } from '../../theme/ThemeContext';
 
 const StyledAppBar = styled(MuiAppBar)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' 
-    ? 'rgba(0, 0, 0, 0.9)' 
-    : 'rgba(255, 255, 255, 0.9)',
+    ? '#1a1a1a' 
+    : '#f8f9fa',
   backdropFilter: 'blur(12px)',
   borderBottom: `1px solid ${theme.palette.mode === 'dark' 
     ? 'rgba(255, 255, 255, 0.1)' 
@@ -59,4 +59,4 @@ export const AppBar: React.FC<AppBarProps> = ({
   );
 };
 
-export default AppBar; 
+export default AppBar;

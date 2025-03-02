@@ -37,7 +37,7 @@ export const typography = {
   h4: {
     fontFamily: fontFamilies.primary,
     fontWeight: fontWeights.medium,
-    fontSize: '1.5rem', // 24px
+    fontSize: '1.375rem', // 22px
     lineHeight: 1.4,
     letterSpacing: '-0.01em',
   },
@@ -113,8 +113,82 @@ export const typography = {
     lineHeight: 1.5,
     letterSpacing: '0em',
   },
+  // Additional utility styles
+  small: {
+    fontFamily: fontFamilies.primary,
+    fontWeight: fontWeights.regular,
+    fontSize: '0.7rem',
+    lineHeight: 1.5,
+    letterSpacing: '0.02em',
+  },
+  label: {
+    fontFamily: fontFamilies.primary,
+    fontWeight: fontWeights.medium,
+    fontSize: '0.75rem',
+    lineHeight: 1.5,
+    letterSpacing: '0.02em',
+  },
+  monospace: {
+    fontFamily: fontFamilies.mono,
+    fontWeight: fontWeights.regular,
+    fontSize: '0.825rem',
+    lineHeight: 1.5,
+    letterSpacing: '-0.02em',
+  },
 } as const;
+
+// Responsive typography helpers
+export const responsiveTypography = {
+  h1: {
+    xs: {
+      fontSize: '1.75rem',
+      lineHeight: 1.3,
+    },
+    sm: {
+      fontSize: '2rem',
+      lineHeight: 1.3,
+    },
+    md: {
+      fontSize: '2.25rem',
+      lineHeight: 1.3,
+    },
+  },
+  h2: {
+    xs: {
+      fontSize: '1.5rem',
+      lineHeight: 1.3,
+    },
+    sm: {
+      fontSize: '1.75rem',
+      lineHeight: 1.3,
+    },
+    md: {
+      fontSize: '1.875rem',
+      lineHeight: 1.3,
+    },
+  },
+  h3: {
+    xs: {
+      fontSize: '1.25rem',
+      lineHeight: 1.4,
+    },
+    sm: {
+      fontSize: '1.5rem',
+      lineHeight: 1.4,
+    },
+  },
+  h4: {
+    xs: {
+      fontSize: '1.125rem',
+      lineHeight: 1.4,
+    },
+    sm: {
+      fontSize: '1.375rem',
+      lineHeight: 1.4,
+    },
+  },
+};
 
 export type Typography = typeof typography;
 export type FontFamily = typeof fontFamilies;
-export type FontWeight = typeof fontWeights; 
+export type FontWeight = typeof fontWeights;

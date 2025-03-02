@@ -1,5 +1,8 @@
 import React from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
+import PageTitle from './PageTitle';
+
+// We'll use the primary color from theme instead of hardcoding the color
 
 interface PageHeaderProps {
   title: string;
@@ -37,9 +40,17 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         gap: 2
       }}>
         <Box>
-          <Typography variant="h5" component="h1" gutterBottom={!!subtitle}>
+          <PageTitle 
+            variant="h4" 
+            component="h1" 
+            gutterBottom={!!subtitle}
+            sx={{ 
+              color: theme.palette.primary.main, // Use the primary color from theme
+              fontSize: { xs: '1.5rem', md: '1.75rem' }, // Smaller font size
+            }}
+          >
             {title}
-          </Typography>
+          </PageTitle>
           {subtitle && (
             <Typography variant="body1" color="text.secondary">
               {subtitle}
@@ -59,4 +70,4 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   );
 };
 
-export default PageHeader; 
+export default PageHeader;

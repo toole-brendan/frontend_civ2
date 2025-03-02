@@ -1,9 +1,5 @@
-// Export all dashboard components
-export { default as CriticalStatusCards } from './CriticalStatusCards';
-export { default as FinancialSnapshot } from './FinancialSnapshot';
-export { default as SupplyChainMap } from './SupplyChainMap';
-export { default as ActionCenterPanel } from './ActionCenterPanel';
-export { default as PerformanceMetricsPanel } from './PerformanceMetricsPanel';
-export { default as ForecastPanel } from './ForecastPanel';
-export { default as QuickAccessShortcuts } from './QuickAccessShortcuts';
-export { default as NotificationSidebar } from './NotificationSidebar'; 
+export { default as KpiStatsCard } from './KpiStatsCard';
+export { default as InventoryChartPanel } from './InventoryChartPanel';
+export { default as PaymentChartPanel } from './PaymentChartPanel';
+export { default as ShipmentsTable } from './ShipmentsTable';
+export { default as SupplierDistributionPanel } from './SupplierDistributionPanel';

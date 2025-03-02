@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Drawer,
   List,
@@ -8,6 +8,7 @@ import {
   IconButton,
   Badge,
   Collapse,
+  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
@@ -71,6 +72,7 @@ interface SidebarProps {
   open: boolean;
   onClose: () => void;
   navItems: NavItemConfig[];
+  onCollapseChange?: (collapsed: boolean) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -79,6 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   navItems,
   isMobile,
+  onCollapseChange,
 }) => {
   const { mode, toggleTheme } = useTheme();
   const theme = useMuiTheme();
@@ -97,6 +100,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     return savedState ? JSON.parse(savedState) : false;
   });
   
+  // Update parent component with initial state
+  useEffect(() => {
+    if (onCollapseChange) {
+      onCollapseChange(collapsed);
+    }
+  }, []);
+  
   const drawerWidth = collapsed ? 72 : 260;
 
   const handleLogout = () => {
@@ -108,6 +118,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     const newState = !collapsed;
     setCollapsed(newState);
     localStorage.setItem('sidebarCollapsed', JSON.stringify(newState));
+    if (onCollapseChange) {
+      onCollapseChange(newState);
+    }
   };
 
   const toggleWarehouses = () => {
@@ -130,7 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   // Enhanced navigation items with badges and counts
   const enhancedNavItems: EnhancedNavItem[] = [
     {
-      ...navItems.find(item => item.title === 'Command Center') || { title: 'Command Center', path: ROUTES.DASHBOARD, icon: icons.DashboardIcon },
+      ...navItems.find(item => item.title === 'Dashboard') || { title: 'Dashboard', path: ROUTES.DASHBOARD, icon: icons.DashboardIcon },
       badge: 5, // Unread notifications
     },
     {
@@ -163,28 +176,27 @@ const Sidebar: React.FC<SidebarProps> = ({
         onClick={() => navigate(item.path)}
         selected={isActive}
         sx={{
-          minHeight: 48,
+          py: 1.5,
           px: 2.5,
-          py: 1,
-          borderLeft: isActive ? `3px solid ${theme.palette.primary.main}` : '3px solid transparent',
+          borderRadius: 1,
           backgroundColor: isActive 
-            ? theme.palette.mode === 'dark' 
-              ? 'rgba(255, 255, 255, 0.08)' 
-              : 'rgba(0, 0, 0, 0.04)' 
+            ? (theme.palette.mode === 'light' 
+                ? 'rgba(59, 130, 246, 0.08)' 
+                : 'rgba(144, 202, 249, 0.16)')
             : 'transparent',
           '&:hover': {
-            backgroundColor: theme.palette.mode === 'dark' 
-              ? 'rgba(255, 255, 255, 0.05)' 
-              : 'rgba(0, 0, 0, 0.03)',
+            backgroundColor: theme.palette.mode === 'light' 
+              ? 'rgba(0, 0, 0, 0.04)' 
+              : 'rgba(255, 255, 255, 0.08)'
           },
           justifyContent: collapsed ? 'center' : 'initial',
-          mb: 0.5,
+          mb: 1,
         }}
       >
         <ListItemIcon
           sx={{
-            minWidth: 0,
-            mr: collapsed ? 0 : 2,
+            minWidth: 40,
+            mr: collapsed ? 0 : 0,
             justifyContent: 'center',
             color: isActive 
               ? theme.palette.primary.main 
@@ -201,6 +213,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                 '& .MuiBadge-badge': {
                   right: -3,
                   top: 3,
+                  fontSize: 10, 
+                  height: 16, 
+                  minWidth: 16,
                   border: `2px solid ${theme.palette.background.paper}`,
                   padding: '0 4px',
                 },
@@ -255,10 +270,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         '& .MuiDrawer-paper': {
           width: drawerWidth,
           boxSizing: 'border-box',
-          backgroundColor: theme.palette.mode === 'dark' 
-            ? 'rgba(0, 0, 0, 0.9)' 
-            : 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(12px)',
+          backgroundColor: theme.palette.mode === 'light' ? '#f8f9fa' : '#1a1a1a',
           color: theme.palette.text.primary,
           borderRight: `1px solid ${theme.palette.divider}`,
           transition: theme.transitions.create('width', {
@@ -303,17 +315,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         <Divider sx={{ backgroundColor: theme.palette.divider, my: 1 }} />
         
         {/* Warehouses Section */}
-        <List sx={{ py: 0 }}>
-          <ListItemButton onClick={toggleWarehouses} sx={{ py: 1 }}>
-            <ListItemIcon 
-              sx={{ 
-                minWidth: 0, 
-                mr: collapsed ? 0 : 2, 
-                color: theme.palette.mode === 'dark' 
-                  ? 'rgba(255, 255, 255, 0.7)' 
-                  : 'rgba(0, 0, 0, 0.7)' 
-              }}
-            >
+        <Box sx={{ px: 2, py: 1 }}>
+          <ListItemButton 
+            onClick={toggleWarehouses}
+            sx={{ 
+              borderRadius: 1,
+              mb: 1,
+              py: 1.5
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
               <WarehouseIcon />
             </ListItemIcon>
             {!collapsed && (
@@ -335,42 +346,35 @@ const Sidebar: React.FC<SidebarProps> = ({
           <Collapse in={!collapsed && warehousesOpen} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
               {warehouseLocations.map((location) => (
-                <ListItemButton
-                  key={location.id}
-                  sx={{
-                    pl: 4,
-                    py: 0.75,
-                    '&:hover': {
-                      backgroundColor: theme.palette.mode === 'dark' 
-                        ? 'rgba(255, 255, 255, 0.05)' 
-                        : 'rgba(0, 0, 0, 0.03)',
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 0, mr: 2 }}>
-                    <Box
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        backgroundColor: getStatusColor(location.status),
+                <ListItem key={location.id} disablePadding sx={{ pl: 2 }}>
+                  <ListItemButton sx={{ borderRadius: 1, py: 0.75 }}>
+                    <ListItemIcon sx={{ minWidth: 24, mr: 1 }}>
+                      <Box
+                        component="span"
+                        sx={{
+                          display: 'flex',
+                          width: 12,
+                          height: 12,
+                          borderRadius: '50%',
+                          backgroundColor: getStatusColor(location.status),
+                        }}
+                      />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={location.name}
+                      primaryTypographyProps={{
+                        variant: 'body2',
+                        color: theme.palette.mode === 'dark' 
+                          ? 'rgba(255, 255, 255, 0.7)' 
+                          : 'rgba(0, 0, 0, 0.7)',
                       }}
                     />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={location.name}
-                    primaryTypographyProps={{
-                      variant: 'body2',
-                      color: theme.palette.mode === 'dark' 
-                        ? 'rgba(255, 255, 255, 0.7)' 
-                        : 'rgba(0, 0, 0, 0.7)',
-                    }}
-                  />
-                </ListItemButton>
+                  </ListItemButton>
+                </ListItem>
               ))}
             </List>
           </Collapse>
-        </List>
+        </Box>
       </Box>
       
       {/* Bottom Actions Section - Fixed at bottom */}
@@ -413,10 +417,14 @@ const Sidebar: React.FC<SidebarProps> = ({
               <Button
                 fullWidth
                 variant="contained"
-                color="primary"
                 startIcon={<QrCodeIcon />}
                 onClick={() => navigate(ADDITIONAL_ROUTES.SCANNER)}
-                sx={{ mb: 1 }}
+                sx={{ 
+                  mb: 2, 
+                  py: 1.5,
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.mode === 'light' ? 'white' : '#121212'
+                }}
               >
                 Scan QR Code
               </Button>
@@ -426,11 +434,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                 startIcon={<CreateTransferIcon />}
                 onClick={() => navigate(ADDITIONAL_ROUTES.CREATE_TRANSFER)}
                 sx={{ 
-                  mb: 1, 
-                  color: theme.palette.mode === 'dark' ? 'white' : 'inherit',
-                  borderColor: theme.palette.mode === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.3)' 
-                    : 'rgba(0, 0, 0, 0.23)'
+                  mb: 2, 
+                  py: 1.5,
+                  borderColor: theme.palette.mode === 'light' 
+                    ? 'rgba(0, 0, 0, 0.23)' 
+                    : 'rgba(255, 255, 255, 0.23)',
                 }}
               >
                 Create Transfer
@@ -441,11 +449,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                 startIcon={<ReportIcon />}
                 onClick={() => navigate(ADDITIONAL_ROUTES.GENERATE_REPORT)}
                 sx={{ 
-                  mb: 1,
-                  color: theme.palette.mode === 'dark' ? 'white' : 'inherit',
-                  borderColor: theme.palette.mode === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.3)' 
-                    : 'rgba(0, 0, 0, 0.23)'
+                  mb: 2, 
+                  py: 1.5,
+                  borderColor: theme.palette.mode === 'light' 
+                    ? 'rgba(0, 0, 0, 0.23)' 
+                    : 'rgba(255, 255, 255, 0.23)',
                 }}
               >
                 Generate Report
@@ -506,15 +514,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           px: collapsed ? 0 : 2,
         }}>
           <Button
+            fullWidth
             variant="text"
-            color="inherit"
             onClick={handleLogout}
             startIcon={!collapsed && <LogoutIcon />}
             sx={{ 
+              justifyContent: collapsed ? 'center' : 'flex-start', 
+              py: 1.5,
               color: theme.palette.mode === 'dark' 
                 ? 'rgba(255, 255, 255, 0.7)' 
                 : 'rgba(0, 0, 0, 0.7)',
-              justifyContent: collapsed ? 'center' : 'flex-start',
               minWidth: collapsed ? 'auto' : '100%',
             }}
           >
@@ -526,4 +535,4 @@ const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
-export default Sidebar; 
+export default Sidebar;

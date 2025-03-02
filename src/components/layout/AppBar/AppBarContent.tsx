@@ -11,6 +11,14 @@ import {
   Theme,
   Tooltip,
   Avatar,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  Divider,
+  Button,
+  Card,
+  CardContent,
+  CardActions,
 } from '@mui/material';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 import {
@@ -19,16 +27,30 @@ import {
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
   Menu as MenuIcon,
+  Person as PersonIcon,
+  Settings as SettingsIcon,
+  Logout as LogoutIcon,
+  Check as CheckIcon,
+  SwapHoriz as TransferIcon,
+  DoneAll as DoneAllIcon,
 } from '@mui/icons-material';
 import { useTheme } from '../../../theme/ThemeContext';
+import { useDispatch, useSelector } from '../../../store';
+import { 
+  selectNotifications, 
+  selectUnreadCount, 
+  markAsRead, 
+  markAllAsRead,
+  Notification
+} from '../../../store/slices/notifications/slice';
 
-const DRAWER_WIDTH = 240;
+const DRAWER_WIDTH = 260;
 
 const Search = styled('div')(({ theme }) => ({
   position: 'absolute',
   left: DRAWER_WIDTH,
   borderRadius: 0,
-  backgroundColor: theme.palette.mode === 'dark' ? '#000000' : '#F5F5F5',
+  backgroundColor: theme.palette.mode === 'dark' ? '#333333' : '#FCFCFC',
   border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)'}`,
   marginRight: theme.spacing(2),
   width: '100%',
@@ -135,8 +157,8 @@ const StyledBadge = styled(Badge)(() => ({
 
 // Mock data for user
 const mockUser = {
-  name: 'CPT Michael Rodriguez',
-  unit: 'B Co, 2-87 IN BN',
+  name: 'Michael Chen',
+  unit: '',
   avatar: '',
   status: 'online',
 };
@@ -194,9 +216,16 @@ export const AppBarContent: React.FC<AppBarContentProps> = ({
   onDrawerToggle,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
+  const [notificationAnchorEl, setNotificationAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
   const { mode, toggleTheme } = useTheme();
   const theme = useMuiTheme();
+  const dispatch = useDispatch();
+  
+  // Get notifications from Redux store
+  const notifications = useSelector(selectNotifications);
+  const unreadCount = useSelector(selectUnreadCount);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,6 +234,61 @@ export const AppBarContent: React.FC<AppBarContentProps> = ({
 
   const handleLogoClick = () => {
     navigate('/defense/dashboard');
+  };
+
+  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setProfileAnchorEl(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setProfileAnchorEl(null);
+  };
+  
+  const handleNotificationMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setNotificationAnchorEl(event.currentTarget);
+  };
+  
+  const handleNotificationMenuClose = () => {
+    setNotificationAnchorEl(null);
+  };
+  
+  const handleMarkAsRead = (id: string) => {
+    dispatch(markAsRead(id));
+  };
+  
+  const handleMarkAllAsRead = () => {
+    dispatch(markAllAsRead());
+    handleNotificationMenuClose();
+  };
+  
+  const handleNavigateToNotification = (notification: Notification) => {
+    if (!notification.read) {
+      dispatch(markAsRead(notification.id));
+    }
+    
+    if (notification.actionUrl) {
+      navigate(notification.actionUrl);
+    }
+    
+    handleNotificationMenuClose();
+  };
+
+  const handleLogout = () => {
+    // Add logout logic here
+    console.log('Logging out');
+    handleProfileMenuClose();
+  };
+  
+  // Format timestamp to a more readable format
+  const formatTimestamp = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true,
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   return (
@@ -277,6 +361,7 @@ export const AppBarContent: React.FC<AppBarContentProps> = ({
         size="large"
         aria-label="show notifications"
         color="inherit"
+        onClick={handleNotificationMenuOpen}
         sx={{
           '&:hover': {
             backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -284,12 +369,126 @@ export const AppBarContent: React.FC<AppBarContentProps> = ({
           mr: 1,
         }}
       >
-        <StyledBadge badgeContent={3} color="error">
+        {unreadCount > 0 ? (
+          <StyledBadge badgeContent={unreadCount} color="error">
+            <NotificationsIcon />
+          </StyledBadge>
+        ) : (
           <NotificationsIcon />
-        </StyledBadge>
+        )}
       </IconButton>
+      
+      {/* Notifications Menu */}
+      <Menu
+        anchorEl={notificationAnchorEl}
+        open={Boolean(notificationAnchorEl)}
+        onClose={handleNotificationMenuClose}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        PaperProps={{
+          sx: {
+            mt: 1.5,
+            width: 360,
+            maxHeight: 480,
+            border: theme => `1px solid ${theme.palette.divider}`,
+            boxShadow: theme => theme.palette.mode === 'dark' 
+              ? '0 4px 20px rgba(0, 0, 0, 0.5)' 
+              : '0 4px 20px rgba(0, 0, 0, 0.1)'
+          }
+        }}
+      >
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6" component="div">
+            Notifications
+          </Typography>
+          {unreadCount > 0 && (
+            <Button
+              size="small"
+              color="primary"
+              onClick={handleMarkAllAsRead}
+              startIcon={<DoneAllIcon />}
+            >
+              Mark all as read
+            </Button>
+          )}
+        </Box>
+        <Divider />
+        {notifications.length === 0 ? (
+          <Box sx={{ p: 2, textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              No notifications
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ maxHeight: 360, overflow: 'auto' }}>
+            {notifications.map((notification) => (
+              <Box 
+                key={notification.id} 
+                sx={{ 
+                  p: 2,
+                  bgcolor: !notification.read 
+                    ? (theme) => theme.palette.mode === 'dark' 
+                      ? 'rgba(144, 202, 249, 0.08)' 
+                      : 'rgba(37, 99, 235, 0.05)' 
+                    : 'transparent',
+                  borderBottom: 1,
+                  borderColor: 'divider',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
+                  <Box sx={{ mr: 1 }}>
+                    <Avatar 
+                      sx={{ 
+                        width: 32, 
+                        height: 32, 
+                        bgcolor: notification.type === 'transfer' 
+                          ? 'primary.main' 
+                          : 'warning.main' 
+                      }}
+                    >
+                      <TransferIcon fontSize="small" />
+                    </Avatar>
+                  </Box>
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography variant="subtitle2" component="div" sx={{ fontWeight: !notification.read ? 600 : 400 }}>
+                      {notification.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {notification.message}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                      {formatTimestamp(notification.timestamp)}
+                    </Typography>
+                  </Box>
+                  {!notification.read && (
+                    <IconButton 
+                      size="small" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkAsRead(notification.id);
+                      }}
+                      sx={{ alignSelf: 'flex-start' }}
+                    >
+                      <CheckIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button 
+                    size="small" 
+                    onClick={() => handleNavigateToNotification(notification)}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    View Details
+                  </Button>
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        )}
+      </Menu>
 
-      <UserInfo>
+      <UserInfo onClick={handleProfileMenuOpen} sx={{ cursor: 'pointer' }}>
         <Box sx={{ position: 'relative' }}>
           <Avatar
             src={mockUser.avatar}
@@ -315,20 +514,47 @@ export const AppBarContent: React.FC<AppBarContentProps> = ({
           >
             {mockUser.name}
           </Typography>
-          <Typography
-            variant="caption"
-            sx={{
-              letterSpacing: '0.02em',
-              fontSize: '0.7rem',
-              color: mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-            }}
-          >
-            {mockUser.unit}
-          </Typography>
         </Box>
       </UserInfo>
+      
+      {/* Profile Menu */}
+      <Menu
+        anchorEl={profileAnchorEl}
+        open={Boolean(profileAnchorEl)}
+        onClose={handleProfileMenuClose}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        PaperProps={{
+          sx: {
+            mt: 1.5,
+            border: theme => `1px solid ${theme.palette.divider}`,
+            boxShadow: theme => theme.palette.mode === 'dark' 
+              ? '0 4px 20px rgba(0, 0, 0, 0.5)' 
+              : '0 4px 20px rgba(0, 0, 0, 0.1)'
+          }
+        }}
+      >
+        <MenuItem onClick={handleProfileMenuClose}>
+          <ListItemIcon>
+            <PersonIcon fontSize="small" />
+          </ListItemIcon>
+          Profile
+        </MenuItem>
+        <MenuItem onClick={handleProfileMenuClose}>
+          <ListItemIcon>
+            <SettingsIcon fontSize="small" />
+          </ListItemIcon>
+          Settings
+        </MenuItem>
+        <MenuItem onClick={handleLogout}>
+          <ListItemIcon>
+            <LogoutIcon fontSize="small" />
+          </ListItemIcon>
+          Logout
+        </MenuItem>
+      </Menu>
     </Toolbar>
   );
 };
 
-export default AppBarContent; 
+export default AppBarContent;
